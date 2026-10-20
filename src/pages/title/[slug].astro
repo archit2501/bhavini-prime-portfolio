@@ -1,0 +1,20 @@
+---
+import type { GetStaticPaths } from 'astro';
+import TitleHero from '../../components/title/TitleHero.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { titleBySlug } from '../../lib/catalog';
+import { loadCatalog } from '../../lib/content';
+
+export const getStaticPaths = (async () => {
+  const catalog = await loadCatalog();
+  return catalog.titles.map((t) => ({ params: { slug: t.slug } }));
+}) satisfies GetStaticPaths;
+
+const catalog = await loadCatalog();
+const title = titleBySlug(catalog, Astro.params.slug);
+if (!title) throw new Error(`No title "${Astro.params.slug}"`);
+---
+
+<BaseLayout title={title.title} description={title.synopsis}>
+  <TitleHero catalog={catalog} title={title} />
+</BaseLayout>

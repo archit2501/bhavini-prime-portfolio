@@ -1,0 +1,565 @@
+---
+import Clapperboard from '@lucide/astro/icons/clapperboard';
+import Play from '@lucide/astro/icons/play';
+import Plus from '@lucide/astro/icons/plus';
+import Share2 from '@lucide/astro/icons/share-2';
+import ThumbsDown from '@lucide/astro/icons/thumbs-down';
+import ThumbsUp from '@lucide/astro/icons/thumbs-up';
+import { Picture } from 'astro:assets';
+import type { Catalog, WithSlug } from '../../lib/catalog';
+import { castLine } from '../../lib/catalog';
+import type { Title } from '../../lib/catalog-schema';
+import { artwork } from '../../lib/artwork-assets';
+import { detailMeta } from '../../lib/title-page';
+import { trailerFor } from '../../lib/trailers';
+import { withBase } from '../../lib/url';
+import Wordmark from '../brand/Wordmark.astro';
+import TitleLogo from './TitleLogo.astro';
+
+/**
+ * Prime Video's title detail hero, from the live measurements of a detail page at 1440x900:
+ * full-bleed key art under the scrims; the Original ident above the title lettering; a row of
+ * 48px outlined round buttons (trailer, My List, like, not for me, share); the 348px white CTA
+ * and entitlement; a middle column (status chip, mint status, 18px synopsis, underlined genre
+ * links) and a right column ("Cast:" and badges). Scrolling in plays the trailer full-bleed as
+ * the details fade (immersive), unless motion is reduced.
+ */
+interface Props {
+  catalog: Catalog;
+  title: WithSlug<Title>;
+}
+
+const { catalog, title: t } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const art = artwork(t.slug);
+const trailer = trailerFor(t.slug, base);
+const meta = detailMeta(catalog, t, !!trailer, base);
+const [castLabel, castRole] = castLine(t).split(' as ');
+---
+
+<section class="dh" aria-labelledby="title-name" data-detail-hero data-slug={t.slug}>
+  <div class="dh__art">
+    <Picture
+      src={art.key}
+      alt=""
+      formats={['avif', 'webp']}
+      widths={[640, 960, 1280, 1920, 2560]}
+      sizes="100vw"
+      quality={72}
+      loading="eager"
+      fetchpriority="high"
+      class="dh__img"
+    />
+    {trailer && (
+      <video
+        class="dh__video"
+        muted
+        playsinline
+        preload="none"
+        poster={trailer.poster}
+        aria-label={`${t.title} trailer`}
+        data-trailer
+      >
+        <source src={trailer.webm} type="video/webm" />
+        <source src={trailer.mp4} type="video/mp4" />
+        <track kind="captions" src={trailer.captions} srclang="en" label="English" />
+      </video>
+    )}
+  </div>
+  <div class="dh__scrim"></div>
+
+  <div class="dh__top gutter">
+    <Wordmark variant="ident" height="1.375rem" class="dh__ident" />
+    <h1 id="title-name" class="dh__title">
+      <TitleLogo slug={t.slug} label={t.title} width="min(23.4rem, 70vw)" />
+    </h1>
+  </div>
+
+  <div class="dh__band gutter">
+    <div class="dh__col dh__col--actions">
+      <div class="dh__buttons" role="group" aria-label="Title actions">
+        {trailer && (
+          <button class="ring-btn" type="button" aria-pressed="false" data-play-trailer>
+            <Clapperboard size={22} aria-hidden="true" />
+            <span class="visually-hidden">Watch trailer</span>
+          </button>
+        )}
+        <button class="ring-btn" type="button" aria-pressed="false" data-my-list={t.slug}>
+          <Plus size={24} aria-hidden="true" />
+          <span class="visually-hidden">Add {t.title} to My List</span>
+        </button>
+        <button class="ring-btn" type="button" aria-pressed="false" data-rate="like">
+          <ThumbsUp size={22} aria-hidden="true" />
+          <span class="visually-hidden">Like</span>
+        </button>
+        <button class="ring-btn" type="button" aria-pressed="false" data-rate="not-for-me">
+          <ThumbsDown size={22} aria-hidden="true" />
+          <span class="visually-hidden">Not for me</span>
+        </button>
+        <button class="ring-btn" type="button" data-share>
+          <Share2 size={22} aria-hidden="true" />
+          <span class="visually-hidden">Share</span>
+        </button>
+      </div>
+      <a class="dh__cta" href={withBase(`/watch/${t.slug}/`, base)}>
+        <Play size={26} fill="currentColor" aria-hidden="true" />
+        <span class="dh__cta-text">
+          {meta.cta.map((line) => (
+            <span>{line}</span>
+          ))}
+        </span>
+      </a>
+      <p class="dh__entitle">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="8" fill="#0070f0"></circle>
+          <path
+            d="M4.5 8.2l2.3 2.3 4.7-4.7"
+            fill="none"
+            stroke="#fff"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+        Open to roles
+      </p>
+    </div>
+
+    <div class="dh__col dh__col--about">
+      <p class="dh__flags">
+        <span class="dh__ribbon">{t.ribbon}</span>
+        <span class="dh__status">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle
+              cx="12"
+              cy="12"
+              r="10.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            ></circle>
+            <path
+              d="M6.5 15l4-4.5 3 3 4.5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+          {t.status}
+        </span>
+      </p>
+      <p class="dh__synopsis">{t.synopsis}</p>
+      <p class="dh__genres">
+        {meta.skills.map((s) => (
+          <>
+            <a href={s.href}>{s.name}</a>
+            <span class="dh__dot" aria-hidden="true">
+              •
+            </span>
+          </>
+        ))}
+        {meta.trailing.map((word) => (
+          <span class="dh__grey">{word}</span>
+        ))}
+      </p>
+    </div>
+
+    <div class="dh__col dh__col--cast">
+      <p class="dh__cast">
+        <span class="dh__grey">Cast:</span>
+        <a href={withBase('/contact/', base)}>{castLabel}</a>
+        <span class="dh__grey">as {castRole}</span>
+      </p>
+      <ul class="dh__badges" aria-label="Badges">
+        {meta.badges.map((b) => (
+          <li>{b}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <p class="visually-hidden" role="status" aria-live="polite" data-hero-status></p>
+</section>
+
+<script>
+  const RATE_KEY = 'bhavini:rating:';
+
+  for (const hero of document.querySelectorAll<HTMLElement>('[data-detail-hero]')) {
+    const slug = hero.dataset.slug ?? '';
+    const video = hero.querySelector<HTMLVideoElement>('[data-trailer]');
+    const trailerBtn = hero.querySelector<HTMLButtonElement>('[data-play-trailer]');
+    const status = hero.querySelector<HTMLElement>('[data-hero-status]');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const say = (text: string) => status && (status.textContent = text);
+
+    // Immersive mode: the trailer takes the screen and the details fade, as on primevideo.com.
+    const setImmersive = (on: boolean) => {
+      hero.dataset.immersive = String(on);
+      trailerBtn?.setAttribute('aria-pressed', String(on));
+      if (!video) return;
+      if (on) {
+        video.preload = 'auto';
+        void video.play().catch(() => (hero.dataset.immersive = 'false'));
+      } else {
+        video.pause();
+      }
+    };
+
+    trailerBtn?.addEventListener('click', () => setImmersive(hero.dataset.immersive !== 'true'));
+    video?.addEventListener('ended', () => setImmersive(false));
+    // Esc from anywhere: Safari doesn't focus a tapped button, so focus may be on the page.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && hero.dataset.immersive === 'true') setImmersive(false);
+    });
+
+    if (video && 'IntersectionObserver' in window) {
+      // Scrolling a little way in starts it; scrolling back to the top (or away) stops it.
+      let armed = false;
+      const onScroll = () => {
+        const y = window.scrollY;
+        if (!reduced.matches && y > 120 && !armed) {
+          armed = true;
+          setImmersive(true);
+        } else if (y <= 40 && armed) {
+          armed = false;
+          setImmersive(false);
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting && hero.dataset.immersive === 'true') video.pause();
+        else if (e.isIntersecting && hero.dataset.immersive === 'true')
+          void video.play().catch(() => {});
+      }).observe(hero);
+    }
+
+    // Like / Not for me: one choice per title, kept in this browser only.
+    const rateButtons = [...hero.querySelectorAll<HTMLButtonElement>('[data-rate]')];
+    const read = () => {
+      try {
+        return localStorage.getItem(RATE_KEY + slug);
+      } catch {
+        return null;
+      }
+    };
+    const show = (value: string | null) =>
+      rateButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.rate === value)));
+    show(read());
+    rateButtons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const next = b.getAttribute('aria-pressed') === 'true' ? null : (b.dataset.rate ?? null);
+        try {
+          if (next) localStorage.setItem(RATE_KEY + slug, next);
+          else localStorage.removeItem(RATE_KEY + slug);
+        } catch {
+          /* storage blocked: the choice lasts for this page view */
+        }
+        show(next);
+        say(next === 'like' ? 'Liked' : next ? 'Marked not for me' : 'Rating cleared');
+      }),
+    );
+
+    // Share: the system share sheet where there is one, otherwise copy the link.
+    hero.querySelector('[data-share]')?.addEventListener('click', async () => {
+      const data = { title: document.title, url: location.href };
+      try {
+        if (navigator.share) await navigator.share(data);
+        else {
+          await navigator.clipboard.writeText(location.href);
+          say('Link copied');
+        }
+      } catch {
+        /* dismissed */
+      }
+    });
+  }
+</script>
+
+<style>
+  .dh {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: max(40rem, 100svh);
+    padding-top: calc(var(--nav-h) + var(--space-6));
+    padding-bottom: var(--space-12);
+    overflow: hidden;
+  }
+
+  .dh__art,
+  .dh__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .dh__art :global(picture),
+  .dh__art :global(img),
+  .dh__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 70% 40%;
+  }
+
+  /* The card art morphs into this one on navigation where cross-document transitions exist. */
+  .dh__art :global(img) {
+    view-transition-name: title-art;
+  }
+
+  .dh__video {
+    opacity: 0;
+    transition: opacity var(--dur-fade) var(--ease-standard);
+  }
+
+  .dh[data-immersive='true'] .dh__video {
+    opacity: 1;
+  }
+
+  .dh__scrim {
+    background:
+      linear-gradient(
+        90deg,
+        rgb(0 5 13 / 96%) 0%,
+        rgb(0 5 13 / 85%) 18%,
+        rgb(0 5 13 / 55%) 36%,
+        rgb(0 5 13 / 0%) 60%
+      ),
+      linear-gradient(0deg, rgb(0 5 13 / 99%) 0%, rgb(0 5 13 / 80%) 22%, rgb(0 5 13 / 0%) 50%);
+    transition: opacity var(--dur-fade) var(--ease-standard);
+  }
+
+  .dh[data-immersive='true'] .dh__scrim {
+    opacity: 0.35;
+  }
+
+  .dh__top {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+  }
+
+  .dh__title {
+    transform-origin: 0 0;
+    transition: transform var(--dur-fade) var(--ease-standard);
+  }
+
+  .dh[data-immersive='true'] .dh__title {
+    transform: scale(0.72);
+  }
+
+  /* Prime's band: actions (348px), about (up to 652px), cast (240px), 28px apart. */
+  .dh__band {
+    display: grid;
+    grid-template-columns: 21.75rem minmax(0, 40.75rem) 15rem;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-6) 1.75rem;
+    transition: opacity var(--dur-fade) var(--ease-standard);
+  }
+
+  .dh[data-immersive='true'] .dh__col--about,
+  .dh[data-immersive='true'] .dh__col--cast,
+  .dh[data-immersive='true'] .dh__entitle {
+    opacity: 0;
+  }
+
+  .dh__col--about,
+  .dh__col--cast,
+  .dh__entitle {
+    transition: opacity var(--dur-fade) var(--ease-standard);
+  }
+
+  .dh__buttons {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  /* Prime's outlined round buttons: 48px, dark glass, 3px light ring. */
+  .ring-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--color-btn-outline-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-btn-outline-bg);
+    color: var(--color-text);
+    transition:
+      transform var(--dur-base) ease-in-out,
+      background-color var(--dur-base) ease-in-out;
+  }
+
+  .ring-btn:hover {
+    background: rgb(255 255 255 / 15%);
+    transform: scale(1.06);
+  }
+
+  .ring-btn[aria-pressed='true'] {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-on-light);
+  }
+
+  .dh__cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--cta-h);
+    padding: var(--space-2) 1.3125rem;
+    border-radius: var(--radius-8);
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+    font-size: var(--cta-fs);
+    font-weight: 500;
+    line-height: 1.15;
+    text-decoration: none;
+    transition: transform var(--dur-fast) var(--ease-cta);
+  }
+
+  .dh__cta:hover {
+    transform: scale(1.02);
+  }
+
+  .dh__cta-text {
+    display: grid;
+  }
+
+  .dh__entitle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .dh__entitle svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .dh__flags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .dh__ribbon {
+    padding: 3px 7px;
+    border-radius: var(--radius-chip);
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+    font-size: var(--fs-13);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .dh__status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-mint);
+    font-weight: 700;
+  }
+
+  .dh__status svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* 18px/25px weight 500, three lines. */
+  .dh__synopsis {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: var(--fs-18);
+    font-weight: 500;
+    line-height: 1.39;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+  }
+
+  .dh__genres {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) 0.875rem;
+    margin-top: var(--space-4);
+    font-weight: 700;
+  }
+
+  .dh__genres a,
+  .dh__cast a {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .dh__dot {
+    color: var(--color-text-subtle);
+  }
+
+  .dh__grey {
+    color: var(--color-text-meta);
+  }
+
+  .dh__cast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.375rem;
+    font-weight: 700;
+  }
+
+  .dh__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dh__badges li {
+    padding: 3px 7px;
+    border-radius: var(--radius-chip);
+    background: var(--color-chip);
+    font-size: var(--fs-13);
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 79.9375em) {
+    .dh__band {
+      grid-template-columns: 21.75rem minmax(0, 1fr);
+    }
+
+    .dh__col--cast {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 54.9375em) {
+    .dh__band {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dh__col--cast {
+      grid-column: auto;
+    }
+
+    .dh__col--actions {
+      max-width: 24rem;
+    }
+  }
+</style>

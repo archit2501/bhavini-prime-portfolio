@@ -64,5 +64,8 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
       <slot />
     </main>
     <Footer />
+    <script>
+      import '../scripts/view-transitions';
+    </script>
   </body>
 </html>
