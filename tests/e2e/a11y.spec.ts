@@ -12,6 +12,7 @@ const PAGES = [
   '/skills/',
   '/skills/psychology/',
   '/skills/collections/revenue-wins/',
+  '/career-guide/',
   '/no-such-title/',
 ];
 

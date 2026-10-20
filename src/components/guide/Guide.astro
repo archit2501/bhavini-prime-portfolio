@@ -1,0 +1,632 @@
+---
+import Award from '@lucide/astro/icons/award';
+import BadgeCheck from '@lucide/astro/icons/badge-check';
+import Brain from '@lucide/astro/icons/brain';
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import ChevronRight from '@lucide/astro/icons/chevron-right';
+import GraduationCap from '@lucide/astro/icons/graduation-cap';
+import Megaphone from '@lucide/astro/icons/megaphone';
+import TrendingUp from '@lucide/astro/icons/trending-up';
+import Tv from '@lucide/astro/icons/tv';
+import Users from '@lucide/astro/icons/users';
+import { Picture } from 'astro:assets';
+import { artwork } from '../../lib/artwork-assets';
+import type { Catalog } from '../../lib/catalog';
+import { formatPeriod } from '../../lib/catalog';
+import { guideAxis, guideChannels, nowLabel, nowOffset } from '../../lib/guide';
+import { seasonProgress, tenureLabel } from '../../lib/tenure';
+import { withBase } from '../../lib/url';
+
+/**
+ * Prime's Live TV guide (EPG), from the live page: channel tiles on the left, an ON NOW column,
+ * then programme blocks (#191E25, radius 0 8 8 0, 100px tall) along a time axis, with today as a
+ * white pill and a faint vertical line. Here the channels are career tracks and the axis runs
+ * month by month from 2023. A real table, so every block has its channel and month as headers.
+ */
+interface Props {
+  catalog: Catalog;
+  now: Date;
+}
+
+const { catalog, now } = Astro.props;
+const axis = guideAxis(catalog.guide, now);
+const channels = guideChannels(catalog.guide, axis, now);
+const offset = nowOffset(axis, now);
+const ICONS: Record<string, typeof Tv> = {
+  sales: TrendingUp,
+  marketing: Megaphone,
+  clinical: Brain,
+  community: Users,
+  leadership: Award,
+  education: GraduationCap,
+  certifications: BadgeCheck,
+};
+const hrefFor = (title?: string, track?: string) =>
+  title
+    ? withBase(`/title/${title}/`)
+    : track === 'certifications'
+      ? withBase('/skills/collections/certifications/')
+      : undefined;
+const live = channels.flatMap((c) => (c.onNow ? [{ channel: c, entry: c.onNow }] : []));
+const first = axis.months[0];
+const last = axis.months[axis.months.length - 1];
+---
+
+<section
+  class="guide"
+  aria-labelledby="guide-heading"
+  style={`--now: ${offset.toFixed(3)}; --months: ${axis.months.length}`}
+>
+  <div class="guide__head gutter">
+    <h2 class="guide__heading" id="guide-heading">
+      Guide
+    </h2>
+    <div class="guide__controls" role="group" aria-label="Scroll the guide">
+      <button
+        class="guide__btn"
+        type="button"
+        aria-controls="guide-scroller"
+        data-guide-scroll="-1"
+      >
+        <ChevronLeft size={24} aria-hidden="true" />
+        <span class="visually-hidden">Earlier</span>
+      </button>
+      <button class="guide__now-btn" type="button" aria-controls="guide-scroller" data-guide-now>
+        Now
+      </button>
+      <button class="guide__btn" type="button" aria-controls="guide-scroller" data-guide-scroll="1">
+        <ChevronRight size={24} aria-hidden="true" />
+        <span class="visually-hidden">Later</span>
+      </button>
+    </div>
+  </div>
+
+  {/* Small screens drop the ON NOW column, so what's on now sits above the guide instead. */}
+  {live.map(({ entry }) => (
+    <p class="guide__onnow-mobile gutter">
+      <span class="guide__live">On now</span>
+      <span>
+        {entry.label} · {tenureLabel(entry.start, now)}
+      </span>
+    </p>
+  ))}
+
+  <div
+    class="guide__scroller"
+    id="guide-scroller"
+    role="region"
+    aria-label={`Career guide, ${first.full} to ${last.full}. Scroll sideways for earlier and later months.`}
+    data-guide-scroller
+  >
+    <div class="guide__canvas">
+      <table class="guide__table">
+        <caption class="visually-hidden">
+          What Bhavini worked on, by career track and month,{first.full}to{last.full}
+        </caption>
+        <colgroup>
+          <col class="guide__col-channel" />
+          <col class="guide__col-now" />
+          <col span={axis.months.length} class="guide__col-month" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col" class="guide__corner">
+              <span class="visually-hidden">Track</span>
+            </th>
+            <th scope="col" class="guide__onnow-head">
+              On now
+            </th>
+            {axis.months.map((m) => (
+              <th scope="col" class:list={['guide__month', { 'guide__month--year': m.newYear }]}>
+                <span aria-hidden="true">{m.newYear ? m.full : m.label}</span>
+                <span class="visually-hidden">{m.full}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {channels.map((channel) => {
+            const Icon = ICONS[channel.id] ?? Tv;
+            const rows = channel.lanes.length ? channel.lanes : [[]];
+            return rows.map((cells, laneIndex) => (
+              <tr>
+                {laneIndex === 0 && (
+                  <th scope="row" rowspan={rows.length} class="guide__channel">
+                    <span class="guide__logo">
+                      <Icon size={26} aria-hidden="true" />
+                      <span>{channel.name}</span>
+                    </span>
+                  </th>
+                )}
+                {laneIndex === 0 && (
+                  <td rowspan={rows.length} class="guide__onnow">
+                    {channel.onNow ? (
+                      <a class="onnow" href={hrefFor(channel.onNow.title)}>
+                        {channel.onNow.title && (
+                          <span class="onnow__thumb">
+                            <Picture
+                              src={artwork(channel.onNow.title).card}
+                              alt=""
+                              formats={['avif', 'webp']}
+                              widths={[160, 240]}
+                              sizes="7.5rem"
+                              quality={70}
+                              loading="lazy"
+                            />
+                          </span>
+                        )}
+                        <span class="onnow__text">
+                          <span class="onnow__left">{tenureLabel(channel.onNow.start, now)}</span>
+                          <span class="onnow__title">{channel.onNow.label}</span>
+                          <span
+                            class="onnow__bar"
+                            role="img"
+                            aria-label={`${Math.round(seasonProgress(channel.onNow.start, now) * 100)}% through the first year`}
+                          >
+                            <span
+                              style={`width: ${(seasonProgress(channel.onNow.start, now) * 100).toFixed(1)}%`}
+                            />
+                          </span>
+                        </span>
+                      </a>
+                    ) : channel.lastAired ? (
+                      <span class="offair">
+                        <span class="offair__label">Off air</span>
+                        <span>
+                          Last: {channel.lastAired.label},{' '}
+                          {formatPeriod(channel.lastAired.start, channel.lastAired.end)}
+                        </span>
+                      </span>
+                    ) : null}
+                  </td>
+                )}
+                {cells.length === 0 ? (
+                  <td colspan={axis.months.length} />
+                ) : (
+                  cells.map((cell, i) =>
+                    cell.kind === 'gap' ? (
+                      <td colspan={cell.span} class="guide__gap" />
+                    ) : (
+                      <td colspan={cell.span} class="guide__slot">
+                        {(() => {
+                          const href = hrefFor(cell.entry.title, cell.entry.track);
+                          const Tag = href ? 'a' : 'span';
+                          return (
+                            <Tag
+                              class:list={[
+                                'prog',
+                                {
+                                  'prog--live': cell.onNow,
+                                  // Too short for its name: the words run on into the empty
+                                  // months after it, and the block keeps its true length.
+                                  'prog--short':
+                                    cell.span <= 2 && cells[i + 1]?.kind !== 'programme',
+                                },
+                              ]}
+                              href={href}
+                              data-prog
+                            >
+                              <span class="prog__title">{cell.entry.label}</span>
+                              <span class="prog__time">
+                                {cell.onNow && <span class="prog__live">On now · </span>}
+                                {cell.period}
+                              </span>
+                            </Tag>
+                          );
+                        })()}
+                      </td>
+                    ),
+                  )
+                )}
+              </tr>
+            ));
+          })}
+        </tbody>
+      </table>
+      <div class="guide__line" aria-hidden="true">
+        <span class="guide__pill">{nowLabel(now)}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Earlier / Later page six months at a time; Now brings today into view, as it does on load.
+  for (const section of document.querySelectorAll<HTMLElement>('.guide')) {
+    const scroller = section.querySelector<HTMLElement>('[data-guide-scroller]');
+    const line = section.querySelector<HTMLElement>('.guide__line');
+    if (!scroller || !line) continue;
+    const monthWidth = () =>
+      section.querySelector<HTMLElement>('.guide__month')?.getBoundingClientRect().width ?? 72;
+    const smooth = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    const toNow = (behavior: ScrollBehavior) =>
+      scroller.scrollTo({
+        left: Math.max(0, line.offsetLeft - scroller.clientWidth * 0.7),
+        behavior,
+      });
+    section.querySelectorAll<HTMLButtonElement>('[data-guide-scroll]').forEach((button) =>
+      button.addEventListener('click', () =>
+        scroller.scrollBy({
+          left: Number(button.dataset.guideScroll) * monthWidth() * 6,
+          behavior: smooth,
+        }),
+      ),
+    );
+    section.querySelector('[data-guide-now]')?.addEventListener('click', () => toNow(smooth));
+    toNow('auto');
+  }
+</script>
+
+<style>
+  .guide {
+    --month-w: 4.5rem;
+    --channel-w: 8.125rem;
+    --now-w: 17.5rem;
+    --row-h: 6.25rem;
+  }
+
+  .guide__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .guide__heading {
+    font-size: var(--fs-row-title);
+    font-weight: 700;
+  }
+
+  .guide__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .guide__btn,
+  .guide__now-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-btn);
+    color: var(--color-text);
+  }
+
+  .guide__now-btn {
+    padding: 0 var(--space-4);
+    font-weight: 700;
+  }
+
+  .guide__btn:hover,
+  .guide__now-btn:hover {
+    background: var(--color-btn-hover);
+  }
+
+  .guide__onnow-mobile {
+    display: none;
+  }
+
+  .guide__scroller {
+    overflow-x: auto;
+    padding-inline: var(--gutter);
+    padding-bottom: var(--space-4);
+    scroll-padding-inline: calc(var(--gutter) + var(--channel-w) + var(--now-w));
+  }
+
+  .guide__canvas {
+    position: relative;
+    width: max-content;
+  }
+
+  /* Fixed layout needs a set width: every month exactly --month-w, whatever its content. */
+  .guide__table {
+    width: calc(var(--channel-w) + var(--now-w) + var(--months) * var(--month-w));
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    table-layout: fixed;
+  }
+
+  .guide__col-channel {
+    width: var(--channel-w);
+  }
+
+  .guide__col-now {
+    width: var(--now-w);
+  }
+
+  .guide__col-month {
+    width: var(--month-w);
+  }
+
+  /* Channel tiles and the ON NOW column stay put while the months scroll under them. */
+  .guide__corner,
+  .guide__channel,
+  .guide__onnow-head,
+  .guide__onnow {
+    position: sticky;
+    z-index: 2;
+    background: var(--color-bg);
+  }
+
+  /* The first column also paints over the gutter, so months never show to its left. */
+  .guide__corner,
+  .guide__channel {
+    left: 0;
+    box-shadow: calc(-1 * var(--gutter)) 0 0 0 var(--color-bg);
+  }
+
+  .guide__onnow-head,
+  .guide__onnow {
+    left: var(--channel-w);
+    padding-right: 0.625rem;
+  }
+
+  .guide__onnow-head,
+  .guide__month {
+    height: 2.5rem;
+    color: var(--color-text-muted);
+    font-size: var(--fs-16);
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .guide__onnow-head {
+    color: var(--color-text);
+    text-transform: uppercase;
+  }
+
+  .guide__month {
+    padding-left: var(--space-2);
+    border-left: 1px solid rgb(255 255 255 / 20%);
+    font-size: var(--fs-14);
+  }
+
+  .guide__month--year {
+    color: var(--color-text);
+    border-left-color: rgb(255 255 255 / 55%);
+  }
+
+  .guide__channel {
+    padding-right: 0.625rem;
+    vertical-align: top;
+  }
+
+  .guide__logo {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-1);
+    height: var(--row-h);
+    padding: var(--space-2);
+    border-radius: var(--radius-8);
+    background: var(--color-surface-raised);
+    font-size: var(--fs-13);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .guide__onnow {
+    vertical-align: top;
+  }
+
+  .onnow,
+  .offair {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    height: var(--row-h);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-8);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .onnow__thumb {
+    flex: none;
+    width: 7.5rem;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-chip);
+  }
+
+  .onnow__thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .onnow__text {
+    display: grid;
+    flex: 1;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .onnow__left {
+    color: var(--color-text-muted);
+    font-size: var(--fs-13);
+  }
+
+  .onnow__title {
+    overflow: hidden;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Prime's ON NOW progress: 6px, rounded, red on a translucent track. */
+  .onnow__bar {
+    display: block;
+    height: 0.375rem;
+    border-radius: 0.1875rem;
+    background: rgb(255 255 255 / 20%);
+  }
+
+  .onnow__bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-live);
+  }
+
+  .offair {
+    display: grid;
+    align-content: center;
+    gap: 0.25rem;
+    color: var(--color-text-muted);
+    font-size: var(--fs-13);
+  }
+
+  .offair__label {
+    color: var(--color-text-meta);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .guide__slot {
+    padding-right: 0.25rem;
+    vertical-align: top;
+  }
+
+  /* Programme blocks: #191E25, radius 0 8 8 0, 100px tall, padding 0 16px. */
+  .prog {
+    position: relative;
+    display: grid;
+    align-content: center;
+    gap: 0.25rem;
+    min-width: 100%;
+    height: var(--row-h);
+    padding: 0 var(--space-4);
+    border-radius: 0 var(--radius-8) var(--radius-8) 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color var(--dur-instant) ease-in-out;
+  }
+
+  /* A one-month programme is narrow: on hover or focus it widens to show its whole name. */
+  a.prog:hover,
+  a.prog:focus-visible,
+  span.prog:hover {
+    z-index: 3;
+    width: max-content;
+    max-width: 22rem;
+    background: var(--color-surface-raised);
+  }
+
+  .prog--short {
+    z-index: 1;
+  }
+
+  .prog--short .prog__title,
+  .prog--short .prog__time {
+    overflow: visible;
+    width: max-content;
+    max-width: 18rem;
+    white-space: normal;
+  }
+
+  .prog--short .prog__title {
+    padding-right: var(--space-2);
+  }
+
+  .prog--live {
+    background: var(--color-surface-raised);
+  }
+
+  /* Like Prime's guide, a long programme's name stays in view as the months scroll by. */
+  .prog__title,
+  .prog__time {
+    position: sticky;
+    left: calc(var(--channel-w) + var(--now-w) + var(--space-4));
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  .prog__title {
+    overflow: hidden;
+    font-size: var(--fs-16);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .prog__time {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: var(--fs-14);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .prog__live {
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  /* Today: a white pill over the months and a faint line down through every channel. */
+  .guide__line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--channel-w) + var(--now-w) + var(--now) * var(--month-w));
+    z-index: 1;
+    width: 1px;
+    background: rgb(255 255 255 / 40%);
+    pointer-events: none;
+  }
+
+  .guide__pill {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    padding: 4px 8px 3px;
+    border-radius: var(--radius-8);
+    background: var(--color-text);
+    color: var(--color-on-light);
+    font-size: var(--fs-14);
+    font-weight: 500;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  @media (max-width: 54.9375em) {
+    .guide {
+      --channel-w: 5.5rem;
+      --now-w: 0rem;
+      --month-w: 4rem;
+      --row-h: 5rem;
+    }
+
+    .guide__onnow-head,
+    .guide__onnow,
+    .guide__col-now {
+      display: none;
+    }
+
+    .guide__onnow-mobile {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .guide__live {
+      color: var(--color-live);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .guide__logo span {
+      font-size: var(--fs-11);
+    }
+  }
+</style>

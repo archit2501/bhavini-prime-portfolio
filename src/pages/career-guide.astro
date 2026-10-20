@@ -1,0 +1,46 @@
+---
+import Guide from '../components/guide/Guide.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadCatalog } from '../lib/content';
+
+/** Prime's Live TV guide, as a career timeline: what Bhavini worked on, track by track. */
+const catalog = await loadCatalog();
+// Build time stands in for "now", as on the Continue watching row.
+const now = new Date();
+---
+
+<BaseLayout
+  title="Career Guide"
+  description="Bhavini Malhotra's career as a TV guide: sales, marketing, clinical work, community, leadership and education, month by month since 2023."
+>
+  <div class="career">
+    <header class="career__head gutter">
+      <h1 class="career__title">Career Guide</h1>
+      <p class="career__lede">What's been on, track by track, since 2023.</p>
+    </header>
+    <Guide catalog={catalog} now={now} />
+  </div>
+</BaseLayout>
+
+<style>
+  .career {
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
+  }
+
+  .career__head {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+
+  .career__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .career__lede {
+    color: var(--color-text-synopsis);
+    font-size: var(--fs-18);
+  }
+</style>
