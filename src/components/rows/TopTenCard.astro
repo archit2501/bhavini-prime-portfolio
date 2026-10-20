@@ -38,9 +38,7 @@ const { key } = artwork(item.title.slug);
         <span class="visually-hidden">Number {item.rank}: </span>
         {item.value}
       </span>
-      <!-- prettier-ignore: no whitespace before the hidden comma, or screen readers say "revenue ," -->
-      <!-- prettier-ignore -->
-      <span class="top__label">{item.label}<span class="visually-hidden">,</span></span>
+      <span class="top__label">{item.label}</span>
       <span class="top__from">{item.title.title}</span>
     </span>
   </a>

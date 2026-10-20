@@ -5,10 +5,11 @@ test('Top 10 ranks her proof numbers and links each to its title', async ({ page
   const row = page.getByRole('region', { name: "Top 10 in Bhavini's career" });
   const cards = row.getByRole('link');
   await expect(cards).toHaveCount(10);
-  await expect(cards.first()).toHaveAccessibleName('Number 1: $100K+ in revenue, F1Jobs.io');
+  // Exact names (regexes anchor them): the visible label sits inside the name (WCAG 2.5.3).
+  await expect(cards.first()).toHaveAccessibleName(/^Number 1: \$100K\+ in revenue F1Jobs\.io$/);
   await expect(cards.first()).toHaveAttribute('href', '/title/f1jobs/');
   await expect(cards.nth(9)).toHaveAccessibleName(
-    'Number 10: 90.4% in high school, Cambridge Innovative School',
+    /^Number 10: 90\.4% in high school Cambridge Innovative School$/,
   );
   await expect(row.locator('.top__rank').first()).toHaveAttribute('aria-hidden', 'true');
 });
