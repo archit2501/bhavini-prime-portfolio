@@ -1,0 +1,196 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Picture } from 'astro:assets';
+import LandscapeCard from '../../components/rows/LandscapeCard.astro';
+import PreviewCard from '../../components/rows/PreviewCard.astro';
+import GenreTile from '../../components/skills/GenreTile.astro';
+import Shelf from '../../components/skills/Shelf.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { artwork } from '../../lib/artwork-assets';
+import { certificationCard, titleCard } from '../../lib/cards';
+import { skillShelf } from '../../lib/collections';
+import { loadCatalog } from '../../lib/content';
+import { withBase } from '../../lib/url';
+
+/** One genre: a glowing banner, then the titles, certificates and episodes that use the skill. */
+export const getStaticPaths = (async () => {
+  const catalog = await loadCatalog();
+  return catalog.skills.map((s) => ({ params: { slug: s.slug } }));
+}) satisfies GetStaticPaths;
+
+const catalog = await loadCatalog();
+const skill = catalog.skills.find((s) => s.slug === Astro.params.slug);
+if (!skill) throw new Error(`No skill "${Astro.params.slug}"`);
+const shelf = skillShelf(catalog, skill);
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const others = catalog.skills.filter((s) => s.slug !== skill.slug);
+---
+
+<BaseLayout
+  title={skill.name}
+  description={`${skill.name}: ${skill.items.join(', ')}. Where Bhavini Malhotra uses it.`}
+>
+  <div class="genre" style={`--glow: ${skill.glow}`}>
+    <header class="genre__banner gutter">
+      <p class="genre__eyebrow">
+        <a href={withBase('/skills/')}>Categories</a>
+      </p>
+      <h1 class="genre__title">{skill.name}</h1>
+      <ul class="genre__items" aria-label="Includes">
+        {skill.items.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </header>
+
+    <div class="genre__shelves gutter">
+      {shelf.titles.length > 0 && (
+        <Shelf id="titles" heading="Titles" count={plural(shelf.titles.length, 'title')}>
+          {shelf.titles.map((t) => (
+            <li>
+              <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
+            </li>
+          ))}
+        </Shelf>
+      )}
+
+      {shelf.certifications.length > 0 && (
+        <Shelf id="certificates" heading="Certifications">
+          {shelf.certifications.map((c) => (
+            <li>
+              <LandscapeCard {...certificationCard(c)} image={artwork(c.slug).card} />
+            </li>
+          ))}
+        </Shelf>
+      )}
+
+      {shelf.episodes.length > 0 && (
+        <Shelf id="episodes" heading="Episodes" count={plural(shelf.episodes.length, 'episode')}>
+          {shelf.episodes.map(({ title, episode }) => {
+            const still = artwork(title.slug).stills[episode.number - 1];
+            return (
+              <li>
+                <a class="ep" href={withBase(`/title/${title.slug}/#episodes`)}>
+                  <span class="ep__still">
+                    {still && (
+                      <Picture
+                        src={still}
+                        alt=""
+                        formats={['avif', 'webp']}
+                        widths={[320, 480, 640]}
+                        sizes="(min-width: 87.5em) 260px, (min-width: 55em) 24vw, (min-width: 37.5em) 46vw, 92vw"
+                        quality={72}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+                  </span>
+                  <span class="ep__title">{episode.heading}</span>
+                  <span class="ep__meta">
+                    {title.title} · S{title.season ?? 1} E{episode.number}
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </Shelf>
+      )}
+
+      <Shelf id="more" heading="More categories">
+        {others.map((s) => (
+          <li>
+            <GenreTile href={withBase(`/skills/${s.slug}/`)} name={s.name} glow={s.glow} />
+          </li>
+        ))}
+      </Shelf>
+    </div>
+  </div>
+  <PreviewCard catalog={catalog} />
+</BaseLayout>
+
+<style>
+  /* The banner carries the genre tile's glow across the top of the page. */
+  .genre__banner {
+    display: grid;
+    gap: var(--space-3);
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-8);
+    background:
+      radial-gradient(
+        60% 120% at 85% 0%,
+        color-mix(in srgb, var(--glow) 45%, transparent) 0%,
+        transparent 70%
+      ),
+      linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%);
+  }
+
+  .genre__eyebrow a {
+    color: var(--color-text-subtle);
+    font-size: var(--fs-14);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .genre__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .genre__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .genre__items li {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-btn);
+    font-size: var(--fs-14);
+    font-weight: 600;
+  }
+
+  .genre__shelves {
+    display: grid;
+    gap: var(--space-12);
+    padding-block: var(--space-6) var(--space-12);
+  }
+
+  .ep {
+    display: grid;
+    gap: var(--space-1);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .ep__still {
+    display: block;
+    aspect-ratio: 16 / 9;
+    margin-bottom: var(--space-2);
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--color-chip);
+  }
+
+  .ep__still :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ep__title {
+    font-size: var(--fs-16);
+    font-weight: 700;
+    letter-spacing: 0.025em;
+  }
+
+  .ep__meta {
+    color: var(--color-text-subtle);
+    font-size: var(--fs-14);
+  }
+</style>

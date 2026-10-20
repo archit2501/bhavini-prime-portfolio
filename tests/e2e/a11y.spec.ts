@@ -9,6 +9,9 @@ const PAGES = [
   '/title/christ-university/',
   '/watch/f1jobs/',
   '/search/?q=sales',
+  '/skills/',
+  '/skills/psychology/',
+  '/skills/collections/revenue-wins/',
   '/no-such-title/',
 ];
 
