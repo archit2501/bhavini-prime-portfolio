@@ -41,6 +41,19 @@ export interface TrailerFiles {
   metadata: string;
 }
 
+/**
+ * A trailer's video sources, WebM first (Playwright's Chromium can't decode H.264). Pages put
+ * them in data-sources rather than <source> elements, and src/scripts/video-sources.ts adds them
+ * once the page has loaded: some engines (WebKit on Linux) fetch a <source> early even with
+ * preload="none", and the trailer must never compete with the first paint.
+ */
+export function videoSources(files: TrailerFiles): { src: string; type: string }[] {
+  return [
+    { src: files.webm, type: 'video/webm' },
+    { src: files.mp4, type: 'video/mp4' },
+  ];
+}
+
 export function hasTrailer(slug: string): boolean {
   return (TRAILER_SLUGS as readonly string[]).includes(slug);
 }
