@@ -1,0 +1,158 @@
+---
+import type { Catalog, WithSlug } from '../../lib/catalog';
+import { castLine, formatPeriod } from '../../lib/catalog';
+import type { Title } from '../../lib/catalog-schema';
+import { detailMeta, titleFigures } from '../../lib/title-page';
+
+/**
+ * Prime's "Details" tab: bordered panels of label/value rows. Left: the role's facts and skills.
+ * Right: the confirmed figures and, for films, the credits along the way.
+ */
+interface Props {
+  catalog: Catalog;
+  title: WithSlug<Title>;
+}
+
+const { catalog, title: t } = Astro.props;
+const meta = detailMeta(catalog, t, false, import.meta.env.BASE_URL);
+const figures = titleFigures(catalog, t);
+---
+
+<div class="details">
+  <dl class="details__panel">
+    <div>
+      <dt>Role</dt>
+      <dd>{t.role}</dd>
+    </div>
+    <div>
+      <dt>Company</dt>
+      <dd>{t.organization}</dd>
+    </div>
+    <div>
+      <dt>Location</dt>
+      <dd>{t.location}</dd>
+    </div>
+    <div>
+      <dt>Dates</dt>
+      <dd>{formatPeriod(t.start, t.end)}</dd>
+    </div>
+    <div>
+      <dt>Cast</dt>
+      <dd>{castLine(t)}</dd>
+    </div>
+    {meta.skills.length > 0 && (
+      <div>
+        <dt>Skills</dt>
+        <dd class="details__links">
+          {meta.skills.map((s) => (
+            <a href={s.href}>{s.name}</a>
+          ))}
+        </dd>
+      </div>
+    )}
+  </dl>
+  <div class="details__panel">
+    <h3 class="details__heading">About</h3>
+    <p class="details__text">{t.synopsis}</p>
+    {figures.length > 0 && (
+      <>
+        <h3 class="details__heading">By the numbers</h3>
+        <ul class="details__figures">
+          {figures.map((f) => (
+            <li>
+              <strong>{f.value}</strong> {f.label}
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+    {t.credits && t.credits.length > 0 && (
+      <>
+        <h3 class="details__heading">Along the way</h3>
+        <ul class="details__credits">
+          {t.credits.map((c) => (
+            <li>
+              <strong>{c.title}</strong> {c.synopsis}
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+  </div>
+</div>
+
+<style>
+  .details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+    gap: var(--space-6);
+  }
+
+  .details__panel {
+    margin: 0;
+    padding: var(--space-6);
+    border: 1px solid rgb(255 255 255 / 15%);
+    border-radius: var(--radius-8);
+  }
+
+  dl.details__panel {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  dl.details__panel > div {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text-subtle);
+  }
+
+  .details__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .details__links a {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .details__heading {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-16);
+    font-weight: 700;
+  }
+
+  .details__heading:not(:first-child) {
+    margin-top: var(--space-6);
+  }
+
+  .details__text {
+    color: var(--color-text-subtle);
+  }
+
+  .details__figures,
+  .details__credits {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    color: var(--color-text-subtle);
+    list-style: none;
+  }
+
+  .details__figures strong,
+  .details__credits strong {
+    color: var(--color-text);
+  }
+</style>

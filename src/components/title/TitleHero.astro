@@ -200,7 +200,9 @@ const [castLabel, castRole] = castLine(t).split(' as ');
       if (!video) return;
       if (on) {
         video.preload = 'auto';
-        void video.play().catch(() => (hero.dataset.immersive = 'false'));
+        // If playback can't start yet (off screen, data saver), immersive mode shows the still
+        // art; the observer below plays it once the hero is visible again.
+        void video.play().catch(() => {});
       } else {
         video.pause();
       }

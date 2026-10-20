@@ -1,6 +1,8 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import TitleHero from '../../components/title/TitleHero.astro';
+import TitleTabs from '../../components/title/TitleTabs.astro';
+import PreviewCard from '../../components/rows/PreviewCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { titleBySlug } from '../../lib/catalog';
 import { loadCatalog } from '../../lib/content';
@@ -17,4 +19,6 @@ if (!title) throw new Error(`No title "${Astro.params.slug}"`);
 
 <BaseLayout title={title.title} description={title.synopsis}>
   <TitleHero catalog={catalog} title={title} />
+  <TitleTabs catalog={catalog} title={title} />
+  <PreviewCard catalog={catalog} />
 </BaseLayout>

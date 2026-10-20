@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Catalog } from './catalog';
-import { detailMeta } from './title-page';
+import { detailMeta, nextTab, tabFromHash, tabsFor, titleFigures } from './title-page';
 import { trailerFor, TRAILER_SLUGS } from './trailers';
 
 const catalog = {
@@ -73,5 +73,42 @@ describe('trailerFor', () => {
     });
     expect(trailerFor('clinical')).toBeUndefined();
     expect(trailerFor('f1jobs')?.mp4).toBe('/trailers/f1jobs.mp4');
+  });
+});
+
+describe('tabs', () => {
+  const series = { ...title, episodes: [{ title: 'a', synopsis: 'b', meta: 'c' }] };
+
+  it('opens series on Episodes and films on Related', () => {
+    expect(tabsFor(series).map((t) => t.label)).toEqual(['Episodes', 'Related', 'Details']);
+    expect(tabsFor({ ...title, kind: 'film' }).map((t) => t.id)).toEqual(['related', 'details']);
+    expect(tabsFor({ ...series, episodes: [] }).map((t) => t.id)).toEqual(['related', 'details']);
+  });
+
+  it('follows the URL hash, falling back to the first tab', () => {
+    const tabs = tabsFor(series);
+    expect(tabFromHash('#details', tabs)).toBe('details');
+    expect(tabFromHash('', tabs)).toBe('episodes');
+    expect(tabFromHash('#nope', tabs)).toBe('episodes');
+  });
+
+  it('moves with the arrow keys, Home and End, wrapping at the ends', () => {
+    expect(nextTab(0, 3, 'ArrowRight')).toBe(1);
+    expect(nextTab(2, 3, 'ArrowRight')).toBe(0);
+    expect(nextTab(0, 3, 'ArrowLeft')).toBe(2);
+    expect(nextTab(1, 3, 'Home')).toBe(0);
+    expect(nextTab(1, 3, 'End')).toBe(2);
+    expect(nextTab(1, 3, 'Enter')).toBeUndefined();
+  });
+});
+
+describe('titleFigures', () => {
+  it("lists the title's confirmed figures, skipping unknown ids", () => {
+    const c = {
+      figures: { regions: { value: '5+', label: 'global regions', source: 's', verified: true } },
+    } as unknown as Catalog;
+    expect(titleFigures(c, { ...title, figures: ['regions', 'ghost'] })).toEqual([
+      { value: '5+', label: 'global regions' },
+    ]);
   });
 });

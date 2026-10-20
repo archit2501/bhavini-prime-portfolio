@@ -1,0 +1,162 @@
+---
+import Play from '@lucide/astro/icons/play';
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import type { NumberedEpisode } from '../../lib/catalog';
+
+/**
+ * Prime Video's episode grid, from the measured detail page: four 16:9 stills per row at 1440
+ * (radius 8), an uppercase numbered title (20px/700, +0.4px), an 18px synopsis in #AAA and a
+ * meta row of chips and grey text. On phones it becomes one column and keeps the synopsis and
+ * meta (UX win, decision Q8; the old portfolio hid them).
+ */
+interface Props {
+  episodes: NumberedEpisode[];
+  stills: ImageMetadata[];
+  watchHref: string;
+  season: number;
+}
+
+const { episodes, stills, watchHref, season } = Astro.props;
+---
+
+<ol class="episodes">
+  {episodes.map((e, i) => (
+    <li class="episode">
+      <a class="episode__still" href={`${watchHref}?e=${e.number}`}>
+        {stills[i] && (
+          <Picture
+            src={stills[i]}
+            alt=""
+            formats={['avif', 'webp']}
+            widths={[320, 480, 640, 960]}
+            sizes="(min-width: 87.5em) 302px, (min-width: 55em) 23vw, (min-width: 37.5em) 46vw, 92vw"
+            quality={72}
+            loading="lazy"
+            decoding="async"
+          />
+        )}
+        <span class="episode__play" aria-hidden="true">
+          <Play size={28} fill="currentColor" />
+        </span>
+        <span class="visually-hidden">
+          Play episode {e.number}: {e.title}
+        </span>
+      </a>
+      <h3 class="episode__title">{e.heading}</h3>
+      <p class="episode__synopsis">{e.synopsis}</p>
+      <p class="episode__meta">
+        <span class="episode__chip">{e.meta}</span>
+        <span>
+          S{season} E{e.number}
+        </span>
+      </p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .episodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: var(--space-8) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 87.5em) {
+    .episodes {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .episode {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+
+  .episode__still {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    margin-bottom: var(--space-2);
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--color-chip);
+  }
+
+  .episode__still :global(picture),
+  .episode__still :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .episode__still :global(img) {
+    object-fit: cover;
+    transition: transform var(--dur-base) var(--ease-standard);
+  }
+
+  .episode__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--radius-pill);
+    background: rgb(0 5 13 / 55%);
+    color: var(--color-text);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition:
+      opacity var(--dur-fast) ease-in-out,
+      transform var(--dur-fast) var(--ease-cta);
+  }
+
+  .episode__still:hover .episode__play,
+  .episode__still:focus-visible .episode__play {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .episode__still:hover :global(img) {
+    transform: scale(1.04);
+  }
+
+  .episode__title {
+    font-size: var(--fs-20);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+  }
+
+  .episode__synopsis {
+    color: var(--color-text-muted);
+    font-size: var(--fs-18);
+    font-weight: 500;
+    line-height: 1.39;
+    letter-spacing: 0.02em;
+  }
+
+  .episode__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text-subtle);
+  }
+
+  .episode__chip {
+    padding: 3px 7px;
+    border-radius: var(--radius-chip);
+    background: var(--color-chip);
+    color: var(--color-text);
+    font-size: var(--fs-13);
+    font-weight: 700;
+    line-height: 1;
+  }
+</style>
