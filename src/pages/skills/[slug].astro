@@ -124,6 +124,10 @@ const others = catalog.skills.filter((s) => s.slug !== skill.slug);
   }
 
   .genre__eyebrow a {
+    /* 24px tall, like every other control (WCAG 2.5.8). */
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
     color: var(--color-text-subtle);
     font-size: var(--fs-14);
     font-weight: 700;
