@@ -110,3 +110,21 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Page-to-page transitions where supported (cards morph into the detail hero as "title-art"). */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(title-art) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
