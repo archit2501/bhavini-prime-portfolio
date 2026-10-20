@@ -1,0 +1,36 @@
+---
+import { artwork } from '../../lib/artwork-assets';
+
+interface Props {
+  slug: string;
+  /** The title's name, read by screen readers in place of the lettering. */
+  label: string;
+  /** Rendered width of the lettering; height follows its proportions. */
+  width?: string;
+  class?: string;
+}
+
+const { slug, label, width = 'min(23.4rem, 80vw)', class: className } = Astro.props;
+const { logo } = artwork(slug);
+---
+
+<svg
+  class:list={['title-logo', className]}
+  viewBox={logo.viewBox}
+  style={`width: ${width}`}
+  role="img"
+  aria-label={label}
+>
+  {logo.paths.map((p) => (
+    <path d={p.d} fill={p.fill} />
+  ))}
+</svg>
+
+<style>
+  .title-logo {
+    display: block;
+    height: auto;
+    max-width: 100%;
+    overflow: visible;
+  }
+</style>

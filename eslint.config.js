@@ -18,6 +18,7 @@ export default [
       '.claude-protocol/',
       '.claude/',
       'media/',
+      'src/assets/art/generated/',
     ],
   },
   js.configs.recommended,
