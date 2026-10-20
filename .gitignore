@@ -20,3 +20,6 @@ plan/
 media/**/renders/
 media/**/.hyperframes/
 media/**/.thumbnails/
+
+# Key art is rendered by scripts/art/build.ts before dev and build
+src/assets/art/generated/
