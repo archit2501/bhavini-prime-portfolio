@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+{"id":"titleId","type":"string","label":"Title (f1jobs, vastra-kala, christ-university)","default":"f1jobs","maxLength":32},
+{"id":"tagline","type":"string","label":"Tagline under the title","default":"Now showing · Since May 2026","maxLength":60},
+{"id":"status","type":"string","label":"Mint status line","default":"$100K+ in revenue from 7+ sales","maxLength":48},
+{"id":"stat1Prefix","type":"string","label":"Stat 1 prefix","default":"$","maxLength":2},
+{"id":"stat1Value","type":"number","label":"Stat 1 value","default":100,"min":0,"max":9999,"step":0.01},
+{"id":"stat1Decimals","type":"number","label":"Stat 1 decimals","default":0,"min":0,"max":2,"step":1},
+{"id":"stat1Suffix","type":"string","label":"Stat 1 suffix","default":"K+","maxLength":3},
+{"id":"stat1Label","type":"string","label":"Stat 1 label","default":"in revenue","maxLength":40},
+{"id":"stat1Detail","type":"string","label":"Stat 1 detail","default":"from 7+ successful sales","maxLength":60},
+{"id":"stat2Prefix","type":"string","label":"Stat 2 prefix","default":"","maxLength":2},
+{"id":"stat2Value","type":"number","label":"Stat 2 value","default":65,"min":0,"max":9999,"step":0.01},
+{"id":"stat2Decimals","type":"number","label":"Stat 2 decimals","default":0,"min":0,"max":2,"step":1},
+{"id":"stat2Suffix","type":"string","label":"Stat 2 suffix","default":"%","maxLength":3},
+{"id":"stat2Label","type":"string","label":"Stat 2 label","default":"workflow efficiency gain","maxLength":40},
+{"id":"stat2Detail","type":"string","label":"Stat 2 detail","default":"after resolving 20+ customer tickets","maxLength":60}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      trailer: 1920x1080, 12 s, 30 fps title trailer (motion-graphics / stat), task 1.3.3.
+
+      Beats: 0.35 "bhavini original" ident -> 2.1 key art with a slow push-in -> 2.9 title
+      lettering, tagline and mint status line (Prime's hero stack) -> 5.1 stat 1 count-up ->
+      8.05 stat 2 count-up -> 10.4 end card with Prime's white "Watch now" button and a
+      blue-check "Open to roles" line, held to 12.0.
+
+      Key art, lettering and ident come from the site's own generators through
+      assets/titles.js (scripts/trailers/assets.ts). One paused root timeline. Per trailer:
+        npx hyperframes render . --strict-variables --variables-file variables/vastra-kala.json \
+          -o renders/vastra-kala.mp4
+    -->
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Title trailer</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/titles.js"></script>
+    <style>
+      @font-face {
+        font-family: "Inter Variable";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: block;
+        src: url("assets/fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+      }
+
+      :root {
+        --bg: #00050d;
+        --text: #ffffff;
+        --text-2: #f1f1f1;
+        --text-3: #c4cacf;
+        --mint: #37f1a3;
+        --check: #0070f0;
+        --blue: #1a98ff;
+        --gutter: 120px;
+        --font: "Inter Variable", Arial, sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      #stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      /* Hidden until their beat; the timeline reveals them. */
+      #art,
+      #hero,
+      #stat1,
+      #stat2,
+      #actions,
+      #ident {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+      }
+
+      /* Key art: one <img> per title; init shows only the selected one. */
+      #art {
+        position: absolute;
+        inset: 0;
+        transform-origin: 70% 45%;
+      }
+
+      .key {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        object-fit: cover;
+        display: none;
+      }
+
+      /* Prime's hero scrims: dark from the left and from the bottom. */
+      #scrim {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgb(0 5 13 / 0.92) 0%, rgb(0 5 13 / 0.55) 34%, rgb(0 5 13 / 0) 62%),
+          linear-gradient(0deg, rgb(0 5 13 / 0.85) 0%, rgb(0 5 13 / 0) 32%);
+      }
+
+      /* Ident: centred "bhavini original" lockup. */
+      #ident {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        display: grid;
+        place-items: center;
+      }
+
+      #ident-svg {
+        display: block;
+        width: 760px;
+        height: auto;
+        overflow: visible;
+      }
+
+      #ident-swoosh {
+        clip-path: inset(0 100% 0 0);
+      }
+
+      /* Left column, Prime's hero stack: ident, lettering, tagline, status. */
+      .column {
+        position: absolute;
+        left: var(--gutter);
+        top: 0;
+        width: 860px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      #hero {
+        gap: 28px;
+        padding-bottom: 60px;
+      }
+
+      /* Small "bhavini original" ident above the lettering, as on Prime's hero. */
+      #hero-ident {
+        display: block;
+        width: 250px;
+        height: auto;
+        overflow: visible;
+      }
+
+      /* Prime's tagline under the title art: small, bold, uppercase. */
+      #tagline {
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--text);
+      }
+
+      #logo-box {
+        width: 640px;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        transform-origin: 0% 50%;
+      }
+
+      #logo-svg {
+        display: block;
+        max-width: 640px;
+        max-height: 300px;
+        width: 640px;
+        height: auto;
+        overflow: visible;
+      }
+
+      #status {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--mint);
+        white-space: nowrap;
+      }
+
+      #status svg {
+        flex: none;
+        width: 40px;
+        height: 40px;
+      }
+
+      /* End-card actions share the slot under the lettering. */
+      #actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 22px;
+      }
+
+      #cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 20px;
+        height: 84px;
+        padding: 0 40px 0 32px;
+        border-radius: 11px;
+        background: #ffffff;
+        color: var(--bg);
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1;
+        transform-origin: 0% 50%;
+      }
+
+      #cta svg {
+        width: 30px;
+        height: 34px;
+      }
+
+      #entitle {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 26px;
+        font-weight: 400;
+        color: var(--text);
+      }
+
+      #entitle svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      #slot {
+        display: grid;
+      }
+
+      #slot > * {
+        grid-area: 1 / 1;
+      }
+
+      /* Stats */
+      .stat {
+        gap: 16px;
+      }
+
+      .figure {
+        display: flex;
+        align-items: baseline;
+        font-size: 210px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.045em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        transform-origin: 0% 70%;
+      }
+
+      .affix {
+        position: relative;
+        font-size: 0.55em;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .affix:empty {
+        display: none;
+      }
+
+      .prefix {
+        margin-right: 0.12em;
+      }
+
+      .suffix {
+        margin-left: 0.1em;
+      }
+
+      .stat-label {
+        font-size: 50px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--text);
+        white-space: nowrap;
+      }
+
+      .stat-detail {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 1.25;
+        color: var(--text-3);
+        white-space: nowrap;
+      }
+
+      .stat-rule {
+        width: 96px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--mint);
+        transform-origin: 0% 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="stage"
+      data-composition-id="trailer"
+      data-start="0"
+      data-duration="12"
+      data-fps="30"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="scene" class="clip" data-start="0" data-duration="12" data-track-index="0">
+        <div id="bg"></div>
+
+        <div id="art" data-layout-allow-overflow>
+          <img class="key" id="key-f1jobs" src="assets/f1jobs-key.jpg" alt="" />
+          <img class="key" id="key-vastra-kala" src="assets/vastra-kala-key.jpg" alt="" />
+          <img class="key" id="key-christ-university" src="assets/christ-university-key.jpg" alt="" />
+        </div>
+        <div id="scrim"></div>
+
+        <div id="ident">
+          <svg id="ident-svg" aria-hidden="true">
+            <g id="ident-word"></g>
+            <g id="ident-suffix"></g>
+            <g id="ident-swoosh"></g>
+          </svg>
+        </div>
+
+        <div id="hero" class="column">
+          <svg id="hero-ident" aria-hidden="true"><g id="hero-ident-paths"></g></svg>
+          <div id="logo-box">
+            <svg id="logo-svg" aria-hidden="true"><g id="logo-paths"></g></svg>
+          </div>
+          <div id="tagline" data-var-text="tagline">Now showing &middot; Since May 2026</div>
+          <div id="slot">
+            <div id="status">
+              <svg viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#37f1a3" stroke-width="3.5" />
+                <path
+                  d="M10 25l7-8 5 5 9-10"
+                  fill="none"
+                  stroke="#37f1a3"
+                  stroke-width="3.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span id="status-text" data-var-text="status">$100K+ in revenue from 7+ sales</span>
+            </div>
+            <div id="actions">
+              <div id="cta">
+                <svg viewBox="0 0 30 34" aria-hidden="true"><path d="M2 2l26 15L2 32z" fill="#00050d" /></svg>
+                <span>Watch now</span>
+              </div>
+              <div id="entitle">
+                <svg viewBox="0 0 30 30" aria-hidden="true">
+                  <circle cx="15" cy="15" r="14" fill="#0070f0" />
+                  <path
+                    d="M8.5 15.5l4.2 4.2 8.8-8.8"
+                    fill="none"
+                    stroke="#ffffff"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Open to roles &middot; Bangalore</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="stat1" class="column stat">
+          <div class="stat-rule" id="stat1-rule"></div>
+          <div class="figure" id="stat1-figure">
+            <span class="affix prefix" id="stat1-prefix"></span>
+            <span class="value" id="stat1-value"></span>
+            <span class="affix suffix" id="stat1-suffix"></span>
+          </div>
+          <div class="stat-label" id="stat1-label" data-var-text="stat1Label">in revenue</div>
+          <div class="stat-detail" id="stat1-detail" data-var-text="stat1Detail">from 7+ successful sales</div>
+        </div>
+
+        <div id="stat2" class="column stat">
+          <div class="stat-rule" id="stat2-rule"></div>
+          <div class="figure" id="stat2-figure">
+            <span class="affix prefix" id="stat2-prefix"></span>
+            <span class="value" id="stat2-value"></span>
+            <span class="affix suffix" id="stat2-suffix"></span>
+          </div>
+          <div class="stat-label" id="stat2-label" data-var-text="stat2Label">workflow efficiency gain</div>
+          <div class="stat-detail" id="stat2-detail" data-var-text="stat2Detail">
+            after resolving 20+ customer tickets
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var DEFAULTS = {
+          titleId: "f1jobs",
+          tagline: "Now showing · Since May 2026",
+          status: "$100K+ in revenue from 7+ sales",
+          stat1Prefix: "$",
+          stat1Value: 100,
+          stat1Decimals: 0,
+          stat1Suffix: "K+",
+          stat1Label: "in revenue",
+          stat1Detail: "from 7+ successful sales",
+          stat2Prefix: "",
+          stat2Value: 65,
+          stat2Decimals: 0,
+          stat2Suffix: "%",
+          stat2Label: "workflow efficiency gain",
+          stat2Detail: "after resolving 20+ customer tickets",
+        };
+        var FONT = '"Inter Variable", Arial, sans-serif';
+        var FPS = 30;
+        var SVG_NS = "http://www.w3.org/2000/svg";
+
+        // Variables are read once at init, never per tick.
+        var hf = window.__hyperframes || {};
+        var vars = hf.getVariables ? hf.getVariables() || {} : {};
+        function v(id) {
+          return vars[id] == null ? DEFAULTS[id] : vars[id];
+        }
+        function num(id) {
+          var n = Number(v(id));
+          return Number.isFinite(n) ? n : DEFAULTS[id];
+        }
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        var data = window.__TRAILER;
+        var titleId = String(v("titleId"));
+        var title = data.titles[titleId] || data.titles[DEFAULTS.titleId];
+        if (!data.titles[titleId]) titleId = DEFAULTS.titleId;
+
+        // ---- static setup (once) ----
+        $("key-" + titleId).style.display = "block";
+
+        function paths(group, list) {
+          list.forEach(function (p) {
+            var el = document.createElementNS(SVG_NS, "path");
+            el.setAttribute("d", p.d);
+            el.setAttribute("fill", p.fill);
+            group.appendChild(el);
+          });
+        }
+
+        var logo = title.logo;
+        $("logo-svg").setAttribute("viewBox", logo.viewBox);
+        paths($("logo-paths"), logo.paths);
+        // Fit the lettering inside 640x300 whatever its proportions.
+        var logoScale = Math.min(640 / logo.width, 300 / logo.height);
+        $("logo-svg").style.width = Math.round(logo.width * logoScale) + "px";
+
+        var ident = data.ident;
+        $("ident-svg").setAttribute("viewBox", ident.viewBox);
+        paths($("ident-word"), [{ d: ident.text, fill: "#ffffff" }]);
+        paths($("ident-suffix"), [{ d: ident.suffix, fill: "#ffffff" }]);
+        paths($("ident-swoosh"), [{ d: ident.swoosh, fill: "#1a98ff" }]);
+        var dot = document.createElementNS(SVG_NS, "circle");
+        dot.setAttribute("cx", ident.dot.cx);
+        dot.setAttribute("cy", ident.dot.cy);
+        dot.setAttribute("r", ident.dot.r);
+        dot.setAttribute("fill", "#1a98ff");
+        $("ident-swoosh").appendChild(dot);
+
+        // The same ident, small, above the hero lettering (white text, blue swoosh).
+        $("hero-ident").setAttribute("viewBox", ident.viewBox);
+        paths($("hero-ident-paths"), [
+          { d: ident.text, fill: "#ffffff" },
+          { d: ident.suffix, fill: "#ffffff" },
+          { d: ident.swoosh, fill: "#1a98ff" },
+        ]);
+        var heroDot = dot.cloneNode();
+        $("hero-ident-paths").appendChild(heroDot);
+
+        // ---- count-up rows: one deterministic string per frame ----
+        function format(value, decimals) {
+          return value.toLocaleString("en-US", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+          });
+        }
+        function affixLift(str) {
+          if (/^[$€£₹]$/.test(str)) return "-0.33em";
+          if (/^[+%]+$/.test(str) || /^K\+$/.test(str)) return "-0.33em";
+          return "";
+        }
+
+        function setupStat(n) {
+          var prefix = String(v("stat" + n + "Prefix"));
+          var suffix = String(v("stat" + n + "Suffix"));
+          var value = num("stat" + n + "Value");
+          var decimals = Math.max(0, Math.min(2, Math.round(num("stat" + n + "Decimals"))));
+          $("stat" + n + "-prefix").textContent = prefix;
+          $("stat" + n + "-suffix").textContent = suffix;
+          $("stat" + n + "-prefix").style.top = affixLift(prefix);
+          $("stat" + n + "-suffix").style.top = affixLift(suffix);
+          var finalText = format(value, decimals);
+          var el = $("stat" + n + "-value");
+          // Size the value box from the final string so the figure never jumps while counting.
+          el.textContent = finalText;
+          el.style.display = "inline-block";
+          el.style.minWidth = Math.ceil(el.getBoundingClientRect().width) + "px";
+          return { value: value, decimals: decimals, el: el };
+        }
+
+        function fit(id, weight, base, min, maxWidth) {
+          var el = $(id);
+          if (hf.fitTextFontSize) {
+            var r = hf.fitTextFontSize(el.textContent, {
+              fontFamily: FONT,
+              fontWeight: weight,
+              maxWidth: maxWidth,
+              baseFontSize: base,
+              minFontSize: min,
+              step: 1,
+            });
+            if (r && Number.isFinite(r.fontSize)) el.style.fontSize = Math.max(min, Math.min(base, r.fontSize)) + "px";
+          }
+        }
+
+        function build() {
+          fit("tagline", 700, 24, 18, 860);
+          fit("status-text", 700, 34, 26, 800);
+          fit("stat1-label", 700, 50, 36, 860);
+          fit("stat2-label", 700, 50, 36, 860);
+          fit("stat1-detail", 500, 32, 24, 860);
+          fit("stat2-detail", 500, 32, 24, 860);
+          var s1 = setupStat(1);
+          var s2 = setupStat(2);
+
+          var tl = gsap.timeline({ paused: true });
+
+          // 0.35-2.30 ident: fades up, swoosh wipes in left to right, then lifts away.
+          tl.fromTo("#ident", { autoAlpha: 0, scale: 0.96 }, { autoAlpha: 1, scale: 1, duration: 0.7, ease: "power2.out" }, 0.35);
+          tl.fromTo(
+            "#ident-swoosh",
+            { clipPath: "inset(0 100% 0 0)" },
+            { clipPath: "inset(0 0% 0 0)", duration: 0.65, ease: "power3.inOut" },
+            0.55,
+          );
+          tl.to("#ident", { autoAlpha: 0, scale: 1.03, duration: 0.4, ease: "power2.in" }, 1.9);
+
+          // 2.10 key art in, slow push-in to the end.
+          tl.fromTo("#art", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: "power1.out" }, 2.1);
+          tl.fromTo("#art", { scale: 1 }, { scale: 1.07, duration: 9.9, ease: "none", immediateRender: false }, 2.1);
+
+          // 2.70-3.80 Prime's hero stack: ident, lettering, tagline, mint status line.
+          tl.set("#hero", { autoAlpha: 1 }, 2.7);
+          tl.fromTo("#hero-ident", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, 2.7);
+          tl.fromTo("#logo-box", { autoAlpha: 0, y: 36 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: "expo.out" }, 2.9);
+          tl.fromTo("#tagline", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, 3.3);
+          tl.fromTo("#status", { autoAlpha: 0, x: -24 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "power2.out" }, 3.5);
+
+          // 4.90 title clears for the stats.
+          tl.to("#hero", { autoAlpha: 0, y: -24, duration: 0.35, ease: "power2.in" }, 4.9);
+
+          function countUp(n, s, at, dur) {
+            var ease = gsap.parseEase("power3.out");
+            var frames = Math.max(1, Math.round(dur * FPS));
+            for (var f = 0; f <= frames; f += 1) {
+              tl.set(s.el, { textContent: format(s.value * ease(f / frames), s.decimals) }, at + dur * (f / frames));
+            }
+            tl.fromTo(
+              "#stat" + n,
+              { autoAlpha: 0, y: 0 },
+              { autoAlpha: 1, duration: 0.25, ease: "power1.out", immediateRender: false },
+              at,
+            );
+            tl.fromTo("#stat" + n + "-rule", { scaleX: 0 }, { scaleX: 1, duration: dur, ease: "power3.out" }, at);
+            tl.fromTo("#stat" + n + "-figure", { scale: 0.7 }, { scale: 1, duration: dur, ease: "power3.out" }, at);
+            tl.fromTo("#stat" + n + "-label", { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.55, ease: "power2.out" }, at + dur * 0.55);
+            tl.fromTo("#stat" + n + "-detail", { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "expo.out" }, at + dur * 0.8);
+          }
+
+          // 5.10 stat 1; 8.05 stat 2, after stat 1 has fully cleared.
+          countUp(1, s1, 5.1, 1.6);
+          tl.to("#stat1", { autoAlpha: 0, y: -26, duration: 0.35, ease: "power2.in" }, 7.7);
+          countUp(2, s2, 8.05, 1.35);
+          tl.to("#stat2", { autoAlpha: 0, y: -26, duration: 0.35, ease: "power2.in" }, 10.1);
+
+          // 10.40 end card: lettering returns with Watch now and Open to roles; holds to 12.0.
+          tl.set("#status", { autoAlpha: 0 }, 10.4);
+          tl.set("#tagline", { autoAlpha: 0 }, 10.4);
+          tl.fromTo(
+            "#hero",
+            { autoAlpha: 0, y: 24 },
+            { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out", immediateRender: false },
+            10.4,
+          );
+          tl.set("#actions", { autoAlpha: 1 }, 10.6);
+          tl.fromTo("#cta", { autoAlpha: 0, scale: 0.92 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 10.6);
+          tl.fromTo("#entitle", { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out" }, 10.9);
+
+          window.__timelines["trailer"] = tl;
+          tl.seek(0);
+        }
+
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+        else build();
+      })();
+    </script>
+  </body>
+</html>
