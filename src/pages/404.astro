@@ -1,0 +1,43 @@
+---
+import { withBase } from '../lib/url';
+
+const title = 'Title not found · Bhavini Malhotra';
+const home = withBase('/');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content="This page isn't part of Bhavini Malhotra's portfolio." />
+    <meta name="theme-color" content="#00050D" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <main id="main">
+      <h1>We couldn't find that title</h1>
+      <p>
+        <a href={home}>Go to the home page</a>
+      </p>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  body {
+    margin: 0;
+    padding: 24px 72px;
+    background: #00050d;
+    color: #fff;
+    font-family: Arial, sans-serif;
+  }
+  a {
+    color: #79b8f3;
+  }
+  :focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+  }
+</style>
