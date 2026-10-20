@@ -1,60 +1,34 @@
 ---
-// Minimal home page for the scaffold. Task 1.1.2 replaces this shell with BaseLayout and tokens.
-const title = 'Bhavini Malhotra · Sales & Operations';
-const description =
-  'Bhavini Malhotra, Sales & Operations Executive at F1Jobs.io in Bangalore: $100K+ revenue from 7+ sales, lead generation and customer operations.';
-const canonical = new URL(Astro.url.pathname, Astro.site);
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <meta name="theme-color" content="#00050D" />
-    <link rel="canonical" href={canonical} />
-  </head>
-  <body>
-    <a class="skip" href="#main">
-      Skip to content
-    </a>
-    <main id="main">
-      <h1>Bhavini Malhotra</h1>
-      <p>Sales &amp; Operations Executive at F1Jobs.io, Bangalore.</p>
-    </main>
-    <footer>
-      <p>Not affiliated with Amazon, Prime Video or IMDb.</p>
-    </footer>
-  </body>
-</html>
+<BaseLayout>
+  <section class="intro gutter">
+    <h1>{SITE.name}</h1>
+    <p>
+      {SITE.jobTitle} at {SITE.organization.name}, {SITE.location.split(',')[0]}.
+    </p>
+  </section>
+</BaseLayout>
 
-<style is:global>
-  body {
-    margin: 0;
-    padding: 24px 72px;
-    background: #00050d;
-    color: #fff;
-    font-family: Arial, sans-serif;
+<style>
+  .intro {
+    display: grid;
+    gap: var(--space-3);
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
   }
-  footer {
-    color: #8197a4;
-    font-size: 0.9375rem;
+
+  h1 {
+    font-size: var(--fs-50);
+    font-weight: 900;
+    line-height: var(--lh-tight);
+    letter-spacing: 0.01em;
   }
-  .skip {
-    position: absolute;
-    left: 16px;
-    top: -48px;
-    padding: 8px 12px;
-    background: #fff;
-    color: #00050d;
-  }
-  .skip:focus {
-    top: 16px;
-  }
-  :focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 2px;
+
+  p {
+    color: var(--color-text-synopsis);
+    font-size: var(--fs-18);
+    font-weight: 500;
   }
 </style>
