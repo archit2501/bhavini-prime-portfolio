@@ -12,6 +12,7 @@ import { avatarBackground, PROFILES } from '../../lib/profiles';
 import { SITE } from '../../lib/site';
 import { withBase } from '../../lib/url';
 import Wordmark from '../brand/Wordmark.astro';
+import SearchPanel from '../search/SearchPanel.astro';
 
 /**
  * Prime Video's top navigation, measured on primevideo.com (research/04-live-inspection.md):
@@ -71,9 +72,16 @@ const defaultAvatar = avatarBackground(PROFILES[3]);
     </nav>
 
     <div class="nav__tools">
-      <a class="nav__icon" href={withBase('/search/')} aria-label="Search" data-search-open>
+      <button
+        class="nav__icon"
+        type="button"
+        popovertarget="search-panel"
+        aria-controls="search-panel"
+        aria-label="Search"
+        data-search-open
+      >
         <Search size={22} aria-hidden="true" />
-      </a>
+      </button>
       <a
         class="nav__icon nav__icon--wide"
         href={withBase('/browse/all/')}
@@ -185,6 +193,7 @@ const defaultAvatar = avatarBackground(PROFILES[3]);
       </ul>
     </section>
   </div>
+  <SearchPanel />
 </header>
 
 <script>
@@ -351,6 +360,7 @@ const defaultAvatar = avatarBackground(PROFILES[3]);
   }
 
   .nav__icon {
+    background: transparent;
     width: 2.5rem;
     height: 2.5rem;
     border-radius: var(--radius-pill);

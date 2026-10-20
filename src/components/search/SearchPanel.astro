@@ -1,0 +1,115 @@
+---
+import '../../styles/search.css';
+import { withBase } from '../../lib/url';
+import SearchField from './SearchField.astro';
+
+/**
+ * Prime's search drop-down: a frosted panel under the nav (rgba(25,30,37,.8), blur 16px, radius
+ * 12, padding 21) over a dimmed page. A native popover, so the nav's search button opens it,
+ * and Esc or a click outside closes it, with or without scripts. Results arrive as you type.
+ */
+---
+
+<div id="search-panel" class="search-panel" popover data-search-panel>
+  <SearchField id="search-panel-q" />
+  <p class="search-panel__status" role="status" aria-live="polite" data-search-status></p>
+  <ul class="search-results" aria-label="Search results" data-search-results></ul>
+  <a class="search-panel__all" href={withBase('/search/')} hidden data-search-all>
+    See all results
+  </a>
+</div>
+
+<script>
+  import { bindSearch, loadIndex } from '../../scripts/search';
+  import { withBase } from '../../lib/url';
+
+  const panel = document.querySelector<HTMLElement>('[data-search-panel]');
+  const input = panel?.querySelector<HTMLInputElement>('[data-search-input]');
+  const results = panel?.querySelector<HTMLElement>('[data-search-results]');
+  const all = panel?.querySelector<HTMLAnchorElement>('[data-search-all]');
+  if (panel && input && results) {
+    bindSearch({
+      input,
+      results,
+      status: panel.querySelector('[data-search-status]'),
+      clear: panel.querySelector('[data-search-clear]'),
+      limit: 4,
+      onResults: (query, count) => {
+        if (!all) return;
+        all.hidden = !count;
+        all.href = withBase(`/search/?q=${encodeURIComponent(query.trim())}`);
+      },
+    });
+    // Esc in a search field would only clear it; here it closes the panel, back to the button.
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      panel.hidePopover();
+    });
+    // Focus inside the panel when it closes goes back to the search button (Safari won't).
+    let hadFocus = false;
+    panel.addEventListener('beforetoggle', (e) => {
+      if ((e as ToggleEvent).newState === 'closed')
+        hadFocus = panel.contains(document.activeElement);
+    });
+    panel.addEventListener('toggle', (e) => {
+      if ((e as ToggleEvent).newState === 'closed' && hadFocus)
+        document.querySelector<HTMLElement>('[data-search-open]')?.focus();
+    });
+    // Opening the panel puts the cursor in the field and warms up the index.
+    panel.addEventListener('toggle', (e) => {
+      if ((e as ToggleEvent).newState !== 'open') return;
+      input.focus();
+      void loadIndex();
+    });
+  }
+</script>
+
+<style>
+  .search-panel {
+    position: fixed;
+    inset: auto;
+    top: calc(var(--nav-h) + var(--space-1));
+    right: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
+    left: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
+    width: auto;
+    max-height: calc(100svh - var(--nav-h) - var(--space-4));
+    margin: 0;
+    padding: 1.3125rem;
+    overflow-y: auto;
+    border: 0;
+    border-radius: var(--radius-12);
+    background: var(--color-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-glass);
+    color: var(--color-text);
+  }
+
+  .search-panel::backdrop {
+    background: rgb(0 5 13 / 55%);
+  }
+
+  .search-panel__status {
+    margin: var(--space-4) 0;
+    color: var(--color-text-subtle);
+    font-size: var(--fs-14);
+  }
+
+  .search-panel__status:empty {
+    margin: 0 0 var(--space-4);
+  }
+
+  .search-panel__all {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: var(--space-4);
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .search-panel__all[hidden] {
+    display: none;
+  }
+</style>
