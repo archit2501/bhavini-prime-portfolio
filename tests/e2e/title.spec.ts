@@ -33,10 +33,10 @@ test('films get a one-line CTA; titles without a trailer get no trailer button',
     '3 years',
     'CC',
   ]);
-  await page.goto('/title/clinical/');
+  await page.goto('/title/cambridge-innovative-school/');
   await expect(page.getByRole('button', { name: 'Watch trailer' })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Badges' }).getByRole('listitem')).toHaveText([
-    'Series',
+    'Film',
   ]);
 });
 

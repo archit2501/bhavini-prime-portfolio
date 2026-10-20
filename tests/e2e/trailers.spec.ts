@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { TRAILER_SLUGS as TRAILERS } from '../../src/lib/trailers';
 
-const TRAILERS = ['f1jobs', 'vastra-kala', 'christ-university'];
 const TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',

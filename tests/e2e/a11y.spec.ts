@@ -7,6 +7,7 @@ const PAGES = [
   '/browse/experience/',
   '/title/f1jobs/',
   '/title/christ-university/',
+  '/watch/f1jobs/',
   '/no-such-title/',
 ];
 

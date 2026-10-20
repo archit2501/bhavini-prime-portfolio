@@ -1,11 +1,7 @@
+import { TRAILER_CUES } from '../../src/lib/trailers.ts';
+
 /** Beats from media/trailers/shot-plan.json. */
-export const CUES = {
-  ident: [0.35, 2.3],
-  title: [2.7, 4.9],
-  stat1: [5.1, 7.7],
-  stat2: [8.05, 10.1],
-  end: [10.4, 12],
-} as const;
+export const CUES = TRAILER_CUES;
 
 export type TrailerVars = Record<string, string | number>;
 

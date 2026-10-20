@@ -1,0 +1,32 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Player from '../../components/player/Player.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { titleBySlug } from '../../lib/catalog';
+import { loadCatalog } from '../../lib/content';
+import { nextUp } from '../../lib/player';
+import { hasTrailer, trailerFor } from '../../lib/trailers';
+
+/** One player page per title with a trailer. "Watch now" on the others points at their sequel. */
+export const getStaticPaths = (async () => {
+  const catalog = await loadCatalog();
+  return catalog.titles
+    .filter((t) => hasTrailer(t.slug))
+    .map((t) => ({ params: { slug: t.slug } }));
+}) satisfies GetStaticPaths;
+
+const catalog = await loadCatalog();
+const title = titleBySlug(catalog, Astro.params.slug);
+const trailer = trailerFor(Astro.params.slug, import.meta.env.BASE_URL);
+if (!title || !trailer) throw new Error(`Nothing to play for "${Astro.params.slug}"`);
+---
+
+<BaseLayout
+  title={`Watch ${title.title}`}
+  description={`The ${title.title} trailer: ${title.status}.`}
+  nav={false}
+  footer={false}
+  noindex
+>
+  <Player title={title} trailer={trailer} next={nextUp(catalog, title.slug)} />
+</BaseLayout>

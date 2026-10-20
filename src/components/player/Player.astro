@@ -1,0 +1,694 @@
+---
+import Captions from '@lucide/astro/icons/captions';
+import Maximize from '@lucide/astro/icons/maximize';
+import Minimize from '@lucide/astro/icons/minimize';
+import Pause from '@lucide/astro/icons/pause';
+import Play from '@lucide/astro/icons/play';
+import VolumeX from '@lucide/astro/icons/volume-x';
+import X from '@lucide/astro/icons/x';
+import { Picture } from 'astro:assets';
+import type { WithSlug } from '../../lib/catalog';
+import type { Title } from '../../lib/catalog-schema';
+import { artwork } from '../../lib/artwork-assets';
+import { NEXT_UP_SECONDS, formatClock, remainingClock, spokenPosition } from '../../lib/player';
+import { TRAILER_CUES, type TrailerFiles } from '../../lib/trailers';
+import { withBase } from '../../lib/url';
+
+/**
+ * Prime Video's web player, from the X-Ray press still of the browser player: the title centred
+ * at the top; subtitles, volume, full screen, a divider and close at the top right; back 10,
+ * play/pause and forward 10 in the middle; a thin full-width scrubber with elapsed / remaining
+ * under it. The chrome fades after 3 s without input. "Skip intro" shows during the ident, and
+ * a Next up card counts down 10 s to the next title when this one ends.
+ */
+interface Props {
+  title: WithSlug<Title>;
+  trailer: TrailerFiles;
+  next?: WithSlug<Title>;
+}
+
+const { title: t, trailer, next } = Astro.props;
+const length = TRAILER_CUES.end[1];
+const closeHref = withBase(`/title/${t.slug}/`);
+const nextHref = next && withBase(`/watch/${next.slug}/`);
+---
+
+<div
+  class="player"
+  data-player
+  data-state="paused"
+  data-chrome="shown"
+  data-intro-end={TRAILER_CUES.ident[1]}
+  data-close-href={closeHref}
+  data-next-href={nextHref}
+  data-next-title={next?.title}
+>
+  <video
+    class="player__video"
+    muted
+    playsinline
+    preload="auto"
+    poster={trailer.poster}
+    aria-label={`${t.title} trailer`}
+    data-video
+  >
+    <source src={trailer.webm} type="video/webm" />
+    <source src={trailer.mp4} type="video/mp4" />
+    <track kind="captions" src={trailer.captions} srclang="en" label="English" />
+  </video>
+  <div class="player__surface" data-surface></div>
+
+  <div class="player__chrome">
+    <div class="player__scrim player__scrim--top"></div>
+    <div class="player__scrim player__scrim--bottom"></div>
+
+    <div class="player__top gutter">
+      <h1 class="player__title">
+        {t.title}
+        <span class="player__kind">Trailer</span>
+      </h1>
+      <div class="player__tools" role="group" aria-label="Player settings">
+        <button class="tool" type="button" aria-pressed="false" data-captions>
+          <Captions size={26} aria-hidden="true" />
+          <span class="visually-hidden">Subtitles</span>
+        </button>
+        <button class="tool tool--off" type="button" aria-disabled="true" data-mute>
+          <VolumeX size={26} aria-hidden="true" />
+          <span class="visually-hidden">Volume: this trailer has no sound</span>
+        </button>
+        <button class="tool" type="button" aria-pressed="false" data-fullscreen>
+          <Maximize size={24} class="tool__enter" aria-hidden="true" />
+          <Minimize size={24} class="tool__exit" aria-hidden="true" />
+          <span class="visually-hidden">Full screen</span>
+        </button>
+        <span class="tool__divider" aria-hidden="true"></span>
+        <a class="tool" href={closeHref} data-close>
+          <X size={28} aria-hidden="true" />
+          <span class="visually-hidden">Close player</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="player__centre" role="group" aria-label="Playback">
+      <button class="jump" type="button" data-back>
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M21.05 7.26A17 17 0 1 1 10.07 14.25"></path>
+          <polyline points="22.33 2.97 18.1 7.78 23.73 10.85"></polyline>
+          <text x="24" y="28.6">
+            10
+          </text>
+        </svg>
+        <span class="visually-hidden">Back 10 seconds</span>
+      </button>
+      <button class="play" type="button" data-play>
+        <Play size={56} fill="currentColor" class="play__play" aria-hidden="true" />
+        <Pause size={56} fill="currentColor" class="play__pause" aria-hidden="true" />
+        <span class="visually-hidden" data-play-label>
+          Play
+        </span>
+      </button>
+      <button class="jump" type="button" data-forward>
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g transform="matrix(-1 0 0 1 48 0)">
+            <path d="M21.05 7.26A17 17 0 1 1 10.07 14.25"></path>
+            <polyline points="22.33 2.97 18.1 7.78 23.73 10.85"></polyline>
+          </g>
+          <text x="24" y="28.6">
+            10
+          </text>
+        </svg>
+        <span class="visually-hidden">Forward 10 seconds</span>
+      </button>
+    </div>
+
+    <div class="player__bottom gutter">
+      <input
+        class="scrub"
+        type="range"
+        min="0"
+        max={length}
+        step="0.1"
+        value="0"
+        aria-label="Seek"
+        aria-valuetext={spokenPosition(0, length)}
+        data-scrub
+      />
+      <p class="player__time">
+        <span class="player__elapsed" data-elapsed>
+          {formatClock(0)}
+        </span>
+        <span aria-hidden="true">/</span>
+        <span class="visually-hidden">remaining</span>
+        <span data-remaining>{remainingClock(0, length)}</span>
+      </p>
+    </div>
+  </div>
+
+  <button class="skip" type="button" data-skip-intro>
+    Skip intro
+  </button>
+
+  {next && nextHref && (
+    <aside class="next" aria-labelledby="next-title" data-next-up hidden>
+      <a class="next__art" href={nextHref} tabindex="-1" aria-hidden="true">
+        <Picture
+          src={artwork(next.slug).card}
+          alt=""
+          formats={['avif', 'webp']}
+          widths={[320, 480, 640]}
+          sizes="18rem"
+          quality={72}
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="next__bar">
+          <span data-next-bar></span>
+        </span>
+      </a>
+      <div class="next__text">
+        <p class="next__eyebrow">
+          Next up in <span data-next-count>{NEXT_UP_SECONDS}</span>
+        </p>
+        <p class="next__title" id="next-title">
+          {next.title}
+        </p>
+      </div>
+      <div class="next__actions">
+        <a class="next__play" href={nextHref}>
+          <Play size={18} fill="currentColor" aria-hidden="true" />
+          Play now
+        </a>
+        <button class="next__hide" type="button" data-next-cancel>
+          Hide
+        </button>
+      </div>
+    </aside>
+  )}
+
+  <p class="visually-hidden" role="status" aria-live="polite" data-player-status></p>
+</div>
+
+<script>
+  import { initPlayer } from '../../scripts/player';
+
+  document.querySelectorAll<HTMLElement>('[data-player]').forEach(initPlayer);
+</script>
+
+<style>
+  .player {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+    min-height: 20rem;
+    overflow: hidden;
+    background: #000;
+    color: var(--color-text);
+  }
+
+  .player[data-chrome='hidden'] {
+    cursor: none;
+  }
+
+  .player__video,
+  .player__surface {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .player__video {
+    object-fit: contain;
+  }
+
+  /* Captions: white on a dark box, in the site face. */
+  .player__video::cue {
+    background: rgb(0 0 0 / 75%);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: clamp(1rem, 0.6rem + 1.2vw, 1.75rem);
+    line-height: 1.3;
+  }
+
+  .player__chrome {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      visibility 0s;
+  }
+
+  /* Hidden chrome leaves the tab order too; any key or move brings it straight back. */
+  .player[data-chrome='hidden'] .player__chrome {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .player__top,
+  .player__centre,
+  .player__bottom {
+    pointer-events: auto;
+  }
+
+  .player__scrim {
+    position: absolute;
+    right: 0;
+    left: 0;
+  }
+
+  .player__scrim--top {
+    top: 0;
+    height: 10rem;
+    background: linear-gradient(180deg, rgb(0 0 0 / 75%), rgb(0 0 0 / 0%));
+  }
+
+  .player__scrim--bottom {
+    bottom: 0;
+    height: 12rem;
+    background: linear-gradient(0deg, rgb(0 0 0 / 80%), rgb(0 0 0 / 0%));
+  }
+
+  /* Title dead centre; the tools hang off the right edge on the same line. */
+  .player__top {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .player__title {
+    grid-column: 2;
+    display: grid;
+    justify-items: center;
+    max-width: 40vw;
+    font-size: clamp(1.125rem, 0.75rem + 1vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 1px 4px rgb(0 0 0 / 50%);
+  }
+
+  .player__kind {
+    color: var(--color-text-muted);
+    font-size: var(--fs-14);
+    font-weight: 600;
+  }
+
+  .player__tools {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .tool,
+  .jump,
+  .play {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-8);
+    color: var(--color-text);
+    transition:
+      background-color var(--dur-fast) ease-in-out,
+      transform var(--dur-fast) ease-in-out;
+  }
+
+  .tool:hover {
+    background: rgb(255 255 255 / 12%);
+  }
+
+  .tool[aria-pressed='true'] {
+    color: var(--color-accent);
+  }
+
+  .tool--off {
+    color: var(--color-text-muted);
+    cursor: default;
+  }
+
+  .tool :global(.tool__exit),
+  .tool[aria-pressed='true'] :global(.tool__enter) {
+    display: none;
+  }
+
+  .tool[aria-pressed='true'] :global(.tool__exit) {
+    display: block;
+  }
+
+  .tool__divider {
+    width: 1px;
+    height: 1.75rem;
+    margin: 0 var(--space-2);
+    background: rgb(255 255 255 / 35%);
+  }
+
+  /* Back 10 / play / forward 10, centred on the picture. */
+  .player__centre {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: clamp(2.5rem, 8vw, 7.5rem);
+    transform: translate(-50%, -50%);
+  }
+
+  .jump,
+  .play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    filter: drop-shadow(0 0 0.5rem rgb(0 0 0 / 55%));
+    transition: transform var(--dur-fast) var(--ease-cta);
+  }
+
+  .jump:hover,
+  .play:hover {
+    transform: scale(1.08);
+  }
+
+  .jump {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .jump svg {
+    width: 3.25rem;
+    height: 3.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .jump text {
+    fill: currentColor;
+    stroke: none;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  .play {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .play :global(.play__pause),
+  .player[data-state='playing'] .play :global(.play__play) {
+    display: none;
+  }
+
+  .player[data-state='playing'] .play :global(.play__pause) {
+    display: block;
+  }
+
+  .player__bottom {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Prime's scrubber: a thin white line on a translucent track; the thumb shows on hover/focus. */
+  .scrub {
+    --progress: 0%;
+    display: block;
+    width: 100%;
+    height: 1.5rem;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .scrub::-webkit-slider-runnable-track {
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: linear-gradient(
+      90deg,
+      #fff var(--progress),
+      rgb(255 255 255 / 30%) var(--progress)
+    );
+  }
+
+  .scrub::-moz-range-track {
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: linear-gradient(
+      90deg,
+      #fff var(--progress),
+      rgb(255 255 255 / 30%) var(--progress)
+    );
+  }
+
+  .scrub::-webkit-slider-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-top: -0.3125rem;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    transform: scale(0);
+    transition: transform var(--dur-fast) ease-out;
+    appearance: none;
+  }
+
+  .scrub::-moz-range-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    transform: scale(0);
+    transition: transform var(--dur-fast) ease-out;
+  }
+
+  .scrub:hover::-webkit-slider-thumb,
+  .scrub:focus-visible::-webkit-slider-thumb {
+    transform: scale(1);
+  }
+
+  .scrub:hover::-moz-range-thumb,
+  .scrub:focus-visible::-moz-range-thumb {
+    transform: scale(1);
+  }
+
+  .player__time {
+    display: flex;
+    gap: 0.3em;
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--fs-14);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .player__elapsed {
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  /* Skip intro and Next up sit above the scrubber, bottom right, chrome or not. */
+  .skip,
+  .next {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 5.5rem;
+    z-index: 1;
+  }
+
+  .skip {
+    padding: 0.875rem 1.5rem;
+    border: 2px solid rgb(255 255 255 / 70%);
+    border-radius: var(--radius-8);
+    background: rgb(25 30 37 / 80%);
+    backdrop-filter: var(--blur-glass);
+    color: var(--color-text);
+    font-size: var(--fs-16);
+    font-weight: 700;
+    transition: background-color var(--dur-fast) ease-in-out;
+  }
+
+  .skip:hover {
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+  }
+
+  .skip[hidden] {
+    display: none;
+  }
+
+  .next {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 13rem);
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-3);
+    border-radius: var(--radius-8);
+    background: var(--color-glass);
+    backdrop-filter: var(--blur-glass);
+  }
+
+  .next[hidden] {
+    display: none;
+  }
+
+  .next__art {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-chip);
+  }
+
+  .next__art :global(picture),
+  .next__art :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .next__bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 0.25rem;
+    background: rgb(255 255 255 / 25%);
+  }
+
+  .next__bar > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--color-accent);
+  }
+
+  .next__text {
+    align-self: center;
+  }
+
+  .next__eyebrow {
+    color: var(--color-text-muted);
+    font-size: var(--fs-13);
+    font-weight: 600;
+  }
+
+  .next__title {
+    margin-top: 0.125rem;
+    font-size: var(--fs-16);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .next__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-2);
+  }
+
+  .next__play,
+  .next__hide {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-8);
+    font-weight: 700;
+  }
+
+  .next__play {
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+    text-decoration: none;
+  }
+
+  .next__hide {
+    background: var(--color-btn);
+    color: var(--color-text);
+  }
+
+  @media (max-width: 54.9375em) {
+    .player__top {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .player__title {
+      grid-column: 1;
+      justify-items: start;
+      max-width: none;
+      text-align: left;
+    }
+
+    .player__tools {
+      grid-column: 2;
+    }
+
+    .tool {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .tool__divider {
+      display: none;
+    }
+
+    .jump {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+
+    .jump svg {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .play {
+      width: 4.5rem;
+      height: 4.5rem;
+    }
+
+    .play :global(svg) {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .skip,
+    .next {
+      bottom: 4.75rem;
+    }
+
+    .next {
+      left: var(--gutter);
+      grid-template-columns: 7rem minmax(0, 1fr);
+    }
+  }
+</style>

@@ -4,6 +4,7 @@ import { episodesFor, relatedFor } from '../../lib/catalog';
 import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
 import { titleCard } from '../../lib/cards';
+import { watchHref } from '../../lib/player';
 import { tabsFor } from '../../lib/title-page';
 import { withBase } from '../../lib/url';
 import LandscapeCard from '../rows/LandscapeCard.astro';
@@ -67,7 +68,7 @@ const art = artwork(t.slug);
           <EpisodeGrid
             episodes={episodes}
             stills={art.stills}
-            watchHref={withBase(`/watch/${t.slug}/`)}
+            watchHref={watchHref(catalog, t) ?? withBase(`/title/${t.slug}/`)}
             season={t.season ?? 1}
           />
         </>

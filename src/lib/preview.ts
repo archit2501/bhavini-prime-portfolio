@@ -1,5 +1,6 @@
 import { formatPeriod, type Catalog } from './catalog';
 import { periodChip } from './carousel';
+import { watchHref } from './player';
 import { withBase } from './url';
 
 /** What the expanded hover card shows for one card. */
@@ -34,7 +35,8 @@ export function previewData(catalog: Catalog, base?: string): Record<string, Pre
       meta:
         t.kind === 'series' ? `Series · ${episodes} episode${episodes === 1 ? '' : 's'}` : 'Film',
       ctaLabel: 'Watch now',
-      ctaHref: withBase(`/watch/${t.slug}/`, base),
+      // A title with nothing to play (none today) falls back to its page.
+      ctaHref: watchHref(catalog, t, base) ?? withBase(`/title/${t.slug}/`, base),
       detailsHref: withBase(`/title/${t.slug}/`, base),
       listable: true,
     };
