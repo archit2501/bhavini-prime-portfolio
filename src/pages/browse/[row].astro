@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import LandscapeCard from '../../components/rows/LandscapeCard.astro';
+import PreviewCard from '../../components/rows/PreviewCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { artwork } from '../../lib/artwork-assets';
 import { titleCard } from '../../lib/cards';
@@ -41,6 +42,7 @@ const titles = slugs.flatMap((slug) => catalog.titles.find((t) => t.slug === slu
       ))}
     </ul>
   </section>
+  <PreviewCard catalog={catalog} />
 </BaseLayout>
 
 <style>

@@ -17,6 +17,7 @@ import {
   unverifiedFigures,
   type Catalog,
 } from './catalog';
+import { previewData } from './preview';
 import {
   certificationSchema,
   figureSchema,
@@ -223,6 +224,47 @@ describe('topTen', () => {
     top.figures[9] = 'orphan';
     expect(checkCatalog(c)).toEqual(['row top10: figure "orphan" belongs to no title']);
     expect(topTen(c)).toHaveLength(9);
+  });
+});
+
+describe('previewData', () => {
+  const data = previewData(loadContent(), '/');
+
+  it('describes every title and certification for the hover card', () => {
+    expect(Object.keys(data)).toHaveLength(8);
+    expect(data.f1jobs).toMatchObject({
+      title: 'F1Jobs.io',
+      status: '$100K+ in revenue from 7+ sales',
+      ribbon: 'NEW EPISODES',
+      chip: '2026',
+      meta: 'Series · 4 episodes',
+      ctaLabel: 'Watch now',
+      ctaHref: '/watch/f1jobs/',
+      detailsHref: '/title/f1jobs/',
+      listable: true,
+    });
+    expect(data['christ-university'].meta).toBe('Film');
+    expect(data['christ-university'].chip).toBe('2023–26');
+  });
+
+  it('sends certificates to their skill and keeps them off My List', () => {
+    expect(data['nptel-training-of-trainers']).toMatchObject({
+      title: 'Training of Trainers',
+      status: 'NPTEL',
+      synopsis: 'Training of Trainers, a certification from NPTEL (Oct 2024).',
+      ctaLabel: 'View skill',
+      ctaHref: '/skills/professional/',
+      listable: false,
+    });
+  });
+
+  it('handles a one-episode series and a certificate with no skill', () => {
+    const c = clone();
+    c.titles[0].episodes = c.titles[0].episodes?.slice(0, 1);
+    c.certifications[0].skills = [];
+    const d = previewData(c, '/');
+    expect(d.f1jobs.meta).toBe('Series · 1 episode');
+    expect(d[c.certifications[0].slug].ctaHref).toBe('/skills/');
   });
 });
 

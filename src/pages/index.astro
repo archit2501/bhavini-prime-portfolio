@@ -1,6 +1,7 @@
 ---
 import HeroCarousel from '../components/home/HeroCarousel.astro';
 import LandscapeCard from '../components/rows/LandscapeCard.astro';
+import PreviewCard from '../components/rows/PreviewCard.astro';
 import Row from '../components/rows/Row.astro';
 import TopTenCard from '../components/rows/TopTenCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -76,6 +77,7 @@ const now = new Date();
       return null;
     })}
   </div>
+  <PreviewCard catalog={catalog} />
 </BaseLayout>
 
 <style>
