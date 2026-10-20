@@ -98,7 +98,7 @@ GitHub Pages, by hand only: `.github/workflows/deploy.yml` runs from the Actions
 Before the first run:
 
 1. In the repository settings, under Pages, set the source to **GitHub Actions**.
-2. Confirm every figure in `src/content/figures.json` (`"verified": true`). The public build refuses any she hasn't confirmed.
+2. Keep every figure in `src/content/figures.json` confirmed (`"verified": true`; all are today). The public build refuses any she hasn't confirmed.
 
 The project page lives at `https://archit2501.github.io/bhavini-prime-portfolio/`. Every internal link goes through `withBase` (`src/lib/url.ts`), so the base path is respected everywhere. To rehearse it locally:
 
