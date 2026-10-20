@@ -46,7 +46,13 @@ export function initPlayer(root: HTMLElement): void {
 
   // Chrome: shown on any input, faded after 3 s while playing. It stays while the keyboard is
   // in it or the mouse rests on a control, so nothing focused or pointed at disappears.
-  const setChrome = (shown: boolean) => (root.dataset.chrome = shown ? 'shown' : 'hidden');
+  // "Behind the scenes" follows the chrome through this event.
+  const setChrome = (shown: boolean) => {
+    const value = shown ? 'shown' : 'hidden';
+    if (root.dataset.chrome === value) return;
+    root.dataset.chrome = value;
+    root.dispatchEvent(new CustomEvent('chromechange', { detail: shown }));
+  };
   const busy = () =>
     !!root.querySelector('.player__chrome :focus-visible') ||
     (lastInput === 'mouse' &&
@@ -119,7 +125,7 @@ export function initPlayer(root: HTMLElement): void {
   q('[data-forward]')?.addEventListener('click', () => seekBy(SKIP_SECONDS));
 
   // Subtitles: the captions track carries every word the trailer shows.
-  const track = video.textTracks[0];
+  const track = Array.from(video.textTracks).find((t) => t.kind === 'captions');
   const setCaptions = (on: boolean) => {
     if (track) track.mode = on ? 'showing' : 'hidden';
     ccBtn?.setAttribute('aria-pressed', String(on));
@@ -178,7 +184,8 @@ export function initPlayer(root: HTMLElement): void {
 
   // Keyboard: space/k, arrows/j/l, f, m, c and Esc. Buttons and the scrubber keep their own keys.
   document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // An open dialog (the full "Behind the scenes" panel) keeps its own keys, Esc included.
+    if (e.metaKey || e.ctrlKey || e.altKey || root.querySelector('dialog[open]')) return;
     lastInput = 'key';
     wake();
     const target = e.target as HTMLElement | null;

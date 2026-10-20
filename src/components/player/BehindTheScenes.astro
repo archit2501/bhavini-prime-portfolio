@@ -1,0 +1,325 @@
+---
+import X from '@lucide/astro/icons/x';
+import { SCENE_TABS, type SceneIcon as IconName, type SceneSheet } from '../../lib/cues';
+import SceneIcon from './SceneIcon.astro';
+import SceneRow from './SceneRow.astro';
+
+/**
+ * "Behind the scenes", the homage to Prime's X-Ray, in two parts:
+ * - a quick view at the top left: a header with "View all", then the rows for the current scene,
+ *   fed by the trailer's metadata track; it shows with the chrome, and for a few seconds when the
+ *   scene changes;
+ * - "View all": a dialog with tabs (In scene, Skills, Facts, Trivia) listing everything.
+ */
+interface Props {
+  sheet: SceneSheet;
+}
+
+const { sheet } = Astro.props;
+const icons: IconName[] = ['person', 'pin', 'calendar', 'episodes', 'check', 'skill', 'film'];
+---
+
+<section class="bts" aria-labelledby="bts-heading" data-bts data-visible="true">
+  <div class="bts__head">
+    <h2 class="bts__heading" id="bts-heading">
+      Behind the scenes
+    </h2>
+    <button class="bts__all" type="button" aria-haspopup="dialog" data-bts-open>
+      View all
+    </button>
+  </div>
+  <ul class="bts__list" data-bts-list></ul>
+</section>
+
+{icons.map((name) => (
+  <template data-bts-icon={name}>
+    <SceneIcon name={name} />
+  </template>
+))}
+
+<dialog class="bts-full" aria-labelledby="bts-full-heading" data-bts-full>
+  <div class="bts-full__head">
+    <h2 class="bts-full__heading" id="bts-full-heading">
+      Behind the scenes
+    </h2>
+    <button class="bts-full__close" type="button" data-bts-close>
+      <X size={26} aria-hidden="true" />
+      <span class="visually-hidden">Close</span>
+    </button>
+  </div>
+  <div class="bts-full__tabs" role="tablist" aria-label="Behind the scenes" data-bts-tabs>
+    {SCENE_TABS.map((tab, i) => (
+      <button
+        type="button"
+        role="tab"
+        id={`bts-tab-${tab.id}`}
+        aria-controls={`bts-panel-${tab.id}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        tabindex={i === 0 ? 0 : -1}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  {SCENE_TABS.map((tab, i) => (
+    <div
+      class="bts-full__panel"
+      id={`bts-panel-${tab.id}`}
+      role="tabpanel"
+      aria-labelledby={`bts-tab-${tab.id}`}
+      hidden={i !== 0}
+    >
+      <ul class="bts-full__list">
+        {sheet[tab.id].map((item) => (
+          <SceneRow item={item} />
+        ))}
+      </ul>
+    </div>
+  ))}
+</dialog>
+
+<style>
+  /* Quick view: Prime's left column of rows under the top bar. */
+  .bts {
+    position: absolute;
+    top: 5.5rem;
+    left: var(--gutter);
+    z-index: 1;
+    width: min(20rem, 100% - 2 * var(--gutter));
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      visibility 0s;
+  }
+
+  .bts[data-visible='false'] {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .bts__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+    text-shadow: 0 1px 4px rgb(0 0 0 / 60%);
+  }
+
+  .bts__heading {
+    font-size: var(--fs-16);
+    font-weight: 700;
+  }
+
+  .bts__all,
+  .bts-full__close {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-subtle);
+  }
+
+  .bts__all {
+    min-height: 1.5rem;
+    font-size: var(--fs-14);
+    font-weight: 600;
+  }
+
+  .bts__all:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .bts__list,
+  .bts-full__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bts__list {
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: rgb(0 5 13 / 72%);
+    backdrop-filter: var(--blur-glass);
+  }
+
+  .bts__list:empty {
+    display: none;
+  }
+
+  .bts__list :global(.scene-row + .scene-row) {
+    border-top: 1px solid rgb(255 255 255 / 10%);
+  }
+
+  :global(.scene-row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+  }
+
+  :global(.scene-row__thumb) {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    overflow: hidden;
+    border-radius: var(--radius-chip);
+    background: var(--tone, var(--color-chip));
+    color: #fff;
+  }
+
+  :global(.scene-row__thumb img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.scene-row__glyph) {
+    font-size: var(--fs-20);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  :global(.scene-row__text) {
+    display: grid;
+    min-width: 0;
+  }
+
+  :global(.scene-row__title) {
+    font-size: var(--fs-15);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  :global(.scene-row__detail) {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: var(--fs-13);
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+  }
+
+  /* View all: a large panel over the paused picture. */
+  .bts-full {
+    width: min(68rem, 100% - 2 * var(--gutter));
+    max-height: min(44rem, 100svh - 4rem);
+    padding: var(--space-6);
+    border: 0;
+    border-radius: var(--radius-12);
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .bts-full::backdrop {
+    background: rgb(0 0 0 / 70%);
+  }
+
+  .bts-full__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .bts-full__heading {
+    font-size: var(--fs-24);
+    font-weight: 700;
+  }
+
+  .bts-full__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+  }
+
+  .bts-full__close:hover {
+    background: rgb(255 255 255 / 12%);
+  }
+
+  /* The same tabs as the detail page: grey labels, white with an underline when selected. */
+  .bts-full__tabs {
+    display: flex;
+    gap: 1.75rem;
+    margin: var(--space-4) 0 var(--space-5);
+    overflow-x: auto;
+    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    scrollbar-width: none;
+  }
+
+  [role='tab'] {
+    position: relative;
+    flex: none;
+    min-height: 3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-meta);
+    font-size: var(--fs-18);
+    font-weight: 500;
+  }
+
+  [role='tab']:hover {
+    color: var(--color-text);
+  }
+
+  [role='tab'][aria-selected='true'] {
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  [role='tab'][aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-text);
+  }
+
+  .bts-full__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .bts-full__list :global(.scene-row) {
+    border-radius: var(--radius-8);
+    background: rgb(255 255 255 / 4%);
+  }
+
+  /* Below 1280px the centre buttons come close: two rows at a time keeps clear of them. */
+  @media (max-width: 79.9375em) {
+    .bts__list :global(.scene-row:nth-child(n + 3)) {
+      display: none;
+    }
+  }
+
+  @media (max-height: 40em) {
+    .bts__list :global(.scene-row:nth-child(n + 2)) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 37.4375em) {
+    .bts {
+      top: 4.75rem;
+    }
+
+    .bts-full {
+      padding: var(--space-4);
+    }
+  }
+</style>

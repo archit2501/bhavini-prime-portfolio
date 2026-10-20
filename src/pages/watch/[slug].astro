@@ -4,7 +4,9 @@ import Player from '../../components/player/Player.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { titleBySlug } from '../../lib/catalog';
 import { loadCatalog } from '../../lib/content';
+import { sceneSheet } from '../../lib/cues';
 import { nextUp } from '../../lib/player';
+import { titleThumbs } from '../../lib/scene-assets';
 import { hasTrailer, trailerFor } from '../../lib/trailers';
 
 /** One player page per title with a trailer. "Watch now" on the others points at their sequel. */
@@ -19,6 +21,7 @@ const catalog = await loadCatalog();
 const title = titleBySlug(catalog, Astro.params.slug);
 const trailer = trailerFor(Astro.params.slug, import.meta.env.BASE_URL);
 if (!title || !trailer) throw new Error(`Nothing to play for "${Astro.params.slug}"`);
+const sheet = sceneSheet(catalog, title, await titleThumbs(title.slug));
 ---
 
 <BaseLayout
@@ -28,5 +31,5 @@ if (!title || !trailer) throw new Error(`Nothing to play for "${Astro.params.slu
   footer={false}
   noindex
 >
-  <Player title={title} trailer={trailer} next={nextUp(catalog, title.slug)} />
+  <Player title={title} trailer={trailer} next={nextUp(catalog, title.slug)} sheet={sheet} />
 </BaseLayout>

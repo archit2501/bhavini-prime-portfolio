@@ -10,9 +10,11 @@ import { Picture } from 'astro:assets';
 import type { WithSlug } from '../../lib/catalog';
 import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
+import type { SceneSheet } from '../../lib/cues';
 import { NEXT_UP_SECONDS, formatClock, remainingClock, spokenPosition } from '../../lib/player';
 import { TRAILER_CUES, type TrailerFiles } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
+import BehindTheScenes from './BehindTheScenes.astro';
 
 /**
  * Prime Video's web player, from the X-Ray press still of the browser player: the title centred
@@ -25,9 +27,11 @@ interface Props {
   title: WithSlug<Title>;
   trailer: TrailerFiles;
   next?: WithSlug<Title>;
+  /** Everything "Behind the scenes" lists for this title. */
+  sheet: SceneSheet;
 }
 
-const { title: t, trailer, next } = Astro.props;
+const { title: t, trailer, next, sheet } = Astro.props;
 const length = TRAILER_CUES.end[1];
 const closeHref = withBase(`/title/${t.slug}/`);
 const nextHref = next && withBase(`/watch/${next.slug}/`);
@@ -55,6 +59,7 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
     <source src={trailer.webm} type="video/webm" />
     <source src={trailer.mp4} type="video/mp4" />
     <track kind="captions" src={trailer.captions} srclang="en" label="English" />
+    <track kind="metadata" src={trailer.metadata} label="Behind the scenes" />
   </video>
   <div class="player__surface" data-surface></div>
 
@@ -144,6 +149,8 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
     </div>
   </div>
 
+  <BehindTheScenes sheet={sheet} />
+
   <button class="skip" type="button" data-skip-intro>
     Skip intro
   </button>
@@ -189,9 +196,13 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
 </div>
 
 <script>
+  import { initBehindTheScenes } from '../../scripts/behind-the-scenes';
   import { initPlayer } from '../../scripts/player';
 
-  document.querySelectorAll<HTMLElement>('[data-player]').forEach(initPlayer);
+  document.querySelectorAll<HTMLElement>('[data-player]').forEach((root) => {
+    initPlayer(root);
+    initBehindTheScenes(root);
+  });
 </script>
 
 <style>
