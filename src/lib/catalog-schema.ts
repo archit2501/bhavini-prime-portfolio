@@ -76,6 +76,8 @@ export const guideSchema = z.object({
 });
 
 export const rowSchema = z.discriminatedUnion('kind', [
+  /** The super-carousel at the top of the home page. */
+  z.object({ kind: z.literal('hero'), title: text, items: z.array(slug).min(1) }),
   z.object({ kind: z.literal('continue'), title: text, items: z.array(slug).min(1) }),
   z.object({ kind: z.literal('top10'), title: text, figures: z.array(text) }),
   z.object({ kind: z.literal('titles'), title: text, items: z.array(slug).min(1) }),
