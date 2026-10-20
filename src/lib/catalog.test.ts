@@ -9,6 +9,7 @@ import {
   formatPeriod,
   monthIndex,
   relatedFor,
+  rowTitles,
   titleBySlug,
   titlesForSkill,
   unverifiedFigures,
@@ -79,6 +80,17 @@ describe('the real catalog', () => {
     expect(unverifiedFigures(catalog)).toEqual(['highSchool: 90.4% in high school']);
   });
 
+  it('features four titles in the hero carousel, current role first', () => {
+    expect(rowTitles(catalog, 'hero').map((t) => t.slug)).toEqual([
+      'f1jobs',
+      'christ-university',
+      'vastra-kala',
+      'clinical',
+    ]);
+    expect(rowTitles(catalog, 'top10')).toEqual([]);
+    expect(rowTitles(catalog, 'nope')).toEqual([]);
+  });
+
   it('every title appears in a home row', () => {
     const inRows = new Set(catalog.rows.flatMap((r) => ('items' in r ? r.items : [])));
     for (const t of catalog.titles) expect(inRows, t.slug).toContain(t.slug);
@@ -99,13 +111,13 @@ describe('checkCatalog finds each kind of problem', () => {
     c.titles[0].figures.push('nope');
     c.titles[0].genres.push('juggling');
     c.certifications[0].skills.push('juggling');
-    c.rows[0] = { id: 'continue', kind: 'continue', title: 'Continue watching', items: ['ghost'] };
+    c.rows[0] = { id: 'hero', kind: 'hero', title: 'Featured', items: ['ghost'] };
     c.guide.entries[0] = { ...c.guide.entries[0], track: 'space', title: 'ghost' };
     expect(checkCatalog(c)).toEqual([
       'title f1jobs: unknown skill "juggling"',
       'title f1jobs: unknown figure "nope"',
       `certification ${c.certifications[0].slug}: unknown skill "juggling"`,
-      'row continue: unknown title "ghost"',
+      'row hero: unknown title "ghost"',
       'guide entry 1 (F1Jobs.io): unknown track "space"',
       'guide entry 1 (F1Jobs.io): unknown title "ghost"',
     ]);

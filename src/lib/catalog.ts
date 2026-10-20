@@ -163,7 +163,7 @@ export function checkCatalog(catalog: Catalog): string[] {
 
   for (const row of catalog.rows) {
     const where = `row ${row.id}`;
-    if (row.kind === 'continue' || row.kind === 'titles') {
+    if (row.kind === 'hero' || row.kind === 'continue' || row.kind === 'titles') {
       for (const s of row.items)
         if (!titleSlugs.has(s)) errors.push(`${where}: unknown title "${s}"`);
     }
@@ -183,6 +183,13 @@ export function checkCatalog(catalog: Catalog): string[] {
   });
 
   return errors;
+}
+
+/** The titles in a row, in the row's order. Unknown slugs never reach here (checkCatalog). */
+export function rowTitles(catalog: Catalog, rowId: string): WithSlug<Title>[] {
+  const row = catalog.rows.find((r) => r.id === rowId);
+  if (!row || !('items' in row)) return [];
+  return row.items.flatMap((slug) => titleBySlug(catalog, slug) ?? []);
 }
 
 /** "id: value label" for each figure Bhavini hasn't confirmed yet. */

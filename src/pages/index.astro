@@ -1,34 +1,14 @@
 ---
+import HeroCarousel from '../components/home/HeroCarousel.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { rowTitles } from '../lib/catalog';
+import { loadCatalog } from '../lib/content';
 import { SITE } from '../lib/site';
+
+const catalog = await loadCatalog();
 ---
 
 <BaseLayout>
-  <section class="intro gutter">
-    <h1>{SITE.name}</h1>
-    <p>
-      {SITE.jobTitle} at {SITE.organization.name}, {SITE.location.split(',')[0]}.
-    </p>
-  </section>
+  <h1 class="visually-hidden">{SITE.name}</h1>
+  <HeroCarousel titles={rowTitles(catalog, 'hero')} />
 </BaseLayout>
-
-<style>
-  .intro {
-    display: grid;
-    gap: var(--space-3);
-    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
-  }
-
-  h1 {
-    font-size: var(--fs-50);
-    font-weight: 900;
-    line-height: var(--lh-tight);
-    letter-spacing: 0.01em;
-  }
-
-  p {
-    color: var(--color-text-synopsis);
-    font-size: var(--fs-18);
-    font-weight: 500;
-  }
-</style>
