@@ -8,6 +8,7 @@ const PAGES = [
   '/title/f1jobs/',
   '/title/christ-university/',
   '/watch/f1jobs/',
+  '/search/?q=sales',
   '/no-such-title/',
 ];
 

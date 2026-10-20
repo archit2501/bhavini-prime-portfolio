@@ -1,0 +1,96 @@
+---
+import SearchCard from '../components/search/SearchCard.astro';
+import SearchField from '../components/search/SearchField.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadCatalog } from '../lib/content';
+import { searchArt } from '../lib/scene-assets';
+import { buildIndex } from '../lib/search';
+import '../styles/search.css';
+
+/**
+ * /search/?q=: the full results page. Built static, it lists everything that can be found, so
+ * it is useful without scripts; with them, it reads ?q= and narrows the list as you type.
+ */
+const catalog = await loadCatalog();
+const art = await searchArt([
+  ...catalog.titles.map((t) => t.slug),
+  ...catalog.certifications.map((c) => c.slug),
+]);
+const index = buildIndex(catalog, art);
+---
+
+<BaseLayout
+  title="Search"
+  description="Search Bhavini Malhotra's roles, episodes, skills and certifications."
+>
+  <div class="search-page gutter">
+    <h1 class="search-page__title">Search</h1>
+    <SearchField id="search-page-q" />
+    <p class="search-page__status" role="status" aria-live="polite" data-search-status>
+      Everything, {index.length} results
+    </p>
+    <ul class="search-results" aria-label="Search results" data-search-page-results>
+      {index.map((entry) => (
+        <SearchCard entry={entry} />
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
+
+<script>
+  import { bindSearch } from '../scripts/search';
+
+  const input = document.querySelector<HTMLInputElement>('#search-page-q');
+  const results = document.querySelector<HTMLElement>('[data-search-page-results]');
+  const status = document.querySelector<HTMLElement>('[data-search-status]');
+  if (input && results) {
+    // An empty field brings back the full, server-rendered list.
+    const everything = [...results.children];
+    const everythingLabel = status?.textContent ?? '';
+    const { run } = bindSearch({
+      input,
+      results,
+      status,
+      clear: input.form?.querySelector('[data-search-clear]'),
+      limit: 48,
+      onEmpty: () => {
+        results.replaceChildren(...everything);
+        if (status) status.textContent = everythingLabel;
+      },
+      onResults: (query) => {
+        const url = new URL(location.href);
+        if (query.trim()) url.searchParams.set('q', query.trim());
+        else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+      },
+    });
+    const q = new URLSearchParams(location.search).get('q');
+    if (q) {
+      input.value = q;
+      void run();
+    }
+    // On this page the nav's search button just goes to the field.
+    document.querySelector('[data-search-open]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      input.focus();
+    });
+  }
+</script>
+
+<style>
+  .search-page {
+    display: grid;
+    gap: var(--space-6);
+    padding-top: calc(var(--nav-h) + var(--space-8));
+    padding-bottom: var(--space-12);
+  }
+
+  .search-page__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+  }
+
+  .search-page__status {
+    color: var(--color-text-subtle);
+  }
+</style>

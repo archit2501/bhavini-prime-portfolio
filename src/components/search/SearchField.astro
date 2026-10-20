@@ -1,0 +1,35 @@
+---
+import Search from '@lucide/astro/icons/search';
+import { withBase } from '../../lib/url';
+
+/** The search field; a plain GET form to /search/, so it works before (or without) scripts. */
+interface Props {
+  id: string;
+  value?: string;
+}
+
+const { id, value } = Astro.props;
+---
+
+<form class="search-form" action={withBase('/search/')} method="get" role="search">
+  <label class="visually-hidden" for={id}>
+    Search titles, episodes, skills and certifications
+  </label>
+  <span class="search-form__icon">
+    <Search size={24} aria-hidden="true" />
+  </span>
+  <input
+    class="search-form__input"
+    id={id}
+    name="q"
+    type="search"
+    value={value}
+    placeholder="Search"
+    autocomplete="off"
+    enterkeyhint="search"
+    data-search-input
+  />
+  <button class="search-form__clear" type="button" hidden data-search-clear>
+    Clear
+  </button>
+</form>
