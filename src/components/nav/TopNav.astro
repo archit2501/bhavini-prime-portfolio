@@ -1,0 +1,512 @@
+---
+import Bookmark from '@lucide/astro/icons/bookmark';
+import Check from '@lucide/astro/icons/check';
+import ChevronDown from '@lucide/astro/icons/chevron-down';
+import Grid2x2Plus from '@lucide/astro/icons/grid-2x2-plus';
+import Grip from '@lucide/astro/icons/grip';
+import Search from '@lucide/astro/icons/search';
+import UserRound from '@lucide/astro/icons/user-round';
+import { RESUME_PATH } from '../../lib/contact';
+import { isCurrent, NAV_CONTACT, NAV_ITEMS } from '../../lib/nav';
+import { avatarBackground, PROFILES } from '../../lib/profiles';
+import { SITE } from '../../lib/site';
+import { withBase } from '../../lib/url';
+import Wordmark from '../brand/Wordmark.astro';
+
+/**
+ * Prime Video's top navigation, measured on primevideo.com (research/04-live-inspection.md):
+ * transparent over the hero, a frosted bar once the page scrolls, the active item as a
+ * translucent pill with a glow from its top edge. Below 1280px the links fold into "Menu";
+ * below 880px the wordmark centres.
+ */
+const path = Astro.url.pathname;
+const base = import.meta.env.BASE_URL;
+const items = NAV_ITEMS.map((i) => ({ ...i, current: isCurrent(path, i.href, base) }));
+const contactCurrent = isCurrent(path, NAV_CONTACT.href, base);
+const defaultAvatar = avatarBackground(PROFILES[3]);
+---
+
+<div id="nav-sentinel" aria-hidden="true"></div>
+<header class="nav" data-scrolled="false">
+  <div class="nav__bar">
+    <button
+      class="nav__menu-btn"
+      type="button"
+      popovertarget="nav-menu"
+      aria-controls="nav-menu"
+      aria-haspopup="true"
+    >
+      Menu <ChevronDown size={20} aria-hidden="true" />
+    </button>
+
+    <a class="nav__brand" href={withBase('/')} aria-label={`${SITE.name}, home`}>
+      <Wordmark height="1.5rem" decorative />
+    </a>
+
+    <nav class="nav__primary" aria-label="Primary">
+      <ul class="nav__links">
+        {items.map((item) => (
+          <li>
+            <a
+              class="nav__link"
+              href={withBase(item.href)}
+              aria-current={item.current ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+        <li class="nav__divider" aria-hidden="true"></li>
+        <li>
+          <a
+            class="nav__link nav__link--icon"
+            href={withBase(NAV_CONTACT.href)}
+            aria-current={contactCurrent ? 'page' : undefined}
+          >
+            <Grid2x2Plus size={20} aria-hidden="true" />
+            {NAV_CONTACT.label}
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="nav__tools">
+      <a class="nav__icon" href={withBase('/search/')} aria-label="Search" data-search-open>
+        <Search size={22} aria-hidden="true" />
+      </a>
+      <a
+        class="nav__icon nav__icon--wide"
+        href={withBase('/browse/all/')}
+        aria-label="Browse all titles"
+      >
+        <Grip size={22} aria-hidden="true" />
+      </a>
+      <a class="nav__icon nav__icon--wide" href={withBase('/my-list/')} aria-label="My List">
+        <Bookmark size={22} aria-hidden="true" />
+      </a>
+      <button
+        class="nav__avatar"
+        type="button"
+        popovertarget="profile-menu"
+        aria-controls="profile-menu"
+        aria-haspopup="true"
+        aria-label="Profile menu"
+        data-avatar
+        style={`background: ${defaultAvatar}`}
+      >
+        <UserRound size={20} aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+
+  <div id="nav-menu" class="popup nav-menu" popover>
+    <ul>
+      {items.map((item) => (
+        <li>
+          <a
+            class="popup__item"
+            href={withBase(item.href)}
+            aria-current={item.current ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+      <li>
+        <a
+          class="popup__item"
+          href={withBase(NAV_CONTACT.href)}
+          aria-current={contactCurrent ? 'page' : undefined}
+        >
+          {NAV_CONTACT.label}
+        </a>
+      </li>
+      <li>
+        <a class="popup__item" href={withBase('/browse/all/')}>
+          Browse all titles
+        </a>
+      </li>
+      <li>
+        <a class="popup__item" href={withBase('/my-list/')}>
+          My List
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div id="profile-menu" class="popup profile-menu" popover>
+    <section aria-labelledby="pm-bhavini">
+      <h2 class="popup__heading" id="pm-bhavini">
+        {SITE.name}
+      </h2>
+      <ul>
+        <li>
+          <a class="popup__item" href={withBase(NAV_CONTACT.href)}>
+            Contact
+          </a>
+        </li>
+        <li>
+          <a class="popup__item" href={withBase(RESUME_PATH)} download>
+            Download resume
+          </a>
+        </li>
+        <li>
+          <a class="popup__item" href={SITE.linkedin} rel="me noopener" target="_blank">
+            LinkedIn
+          </a>
+        </li>
+      </ul>
+    </section>
+    <section aria-labelledby="pm-profiles">
+      <h2 class="popup__heading" id="pm-profiles">
+        Who's visiting
+      </h2>
+      <ul>
+        {PROFILES.map((p) => (
+          <li>
+            <button
+              class="popup__item popup__profile"
+              type="button"
+              data-profile={p.id}
+              aria-pressed="false"
+            >
+              <span
+                class="popup__avatar"
+                style={`background: ${avatarBackground(p)}`}
+                aria-hidden="true"
+              >
+                <UserRound size={18} />
+              </span>
+              {p.name}
+              <Check class="popup__check" size={18} aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</header>
+
+<script>
+  import { avatarBackground, profileById, readProfile, writeProfile } from '../../lib/profiles';
+
+  const header = document.querySelector<HTMLElement>('.nav');
+  const sentinel = document.getElementById('nav-sentinel');
+
+  // Frosted bar once the top of the page has scrolled away (no scroll handler needed).
+  if (header && sentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      header.dataset.scrolled = String(!entry.isIntersecting);
+    }).observe(sentinel);
+  }
+
+  const avatar = document.querySelector<HTMLElement>('[data-avatar]');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-profile]');
+
+  function show(id: string | null) {
+    const profile = profileById(id);
+    if (avatar && profile) {
+      avatar.style.background = avatarBackground(profile);
+      avatar.setAttribute('aria-label', `Profile menu, visiting as ${profile.name}`);
+    }
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.profile === id)));
+  }
+
+  show(readProfile(sessionStorage));
+
+  buttons.forEach((button) =>
+    button.addEventListener('click', () => {
+      const profile = profileById(button.dataset.profile);
+      if (!profile) return;
+      writeProfile(sessionStorage, profile.id);
+      show(profile.id);
+      document.getElementById('profile-menu')?.hidePopover?.();
+      document.dispatchEvent(new CustomEvent('profilechange', { detail: profile.id }));
+      avatar?.focus();
+    }),
+  );
+</script>
+
+<style>
+  #nav-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: var(--z-nav);
+    height: var(--nav-h);
+  }
+
+  .nav__bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 100%;
+    /* The frosted bar starts 21px left of the content gutter, as Prime's does. */
+    margin-inline: max(0px, calc(var(--gutter) - 1.3125rem));
+    padding-inline: max(var(--space-2), min(1.3125rem, var(--gutter)));
+  }
+
+  .nav__bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 0 0 var(--radius-12) var(--radius-12);
+    background: var(--color-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-glass);
+    opacity: 0;
+    transition: opacity var(--dur-instant) linear;
+  }
+
+  .nav[data-scrolled='true'] .nav__bar::before {
+    opacity: 1;
+  }
+
+  .nav__brand {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    border-radius: var(--radius-8);
+    color: var(--color-text);
+  }
+
+  /* 21px from the wordmark to the first pill, as measured. */
+  .nav__primary {
+    margin-left: 0.8125rem;
+  }
+
+  .nav__links {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 2.625rem;
+    padding: 0 0.875rem;
+    border-radius: var(--radius-8);
+    color: var(--color-text);
+    font-size: var(--fs-16);
+    font-weight: 500;
+    letter-spacing: var(--tracking-nav);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      color var(--dur-instant) ease-in-out,
+      background-color var(--dur-instant) ease-in-out,
+      box-shadow var(--dur-instant) ease-in-out;
+  }
+
+  .nav__link:hover {
+    background-color: rgb(255 255 255 / 10%);
+  }
+
+  /* Prime's active pill: translucent fill, a light glow from its top edge, an upward halo. */
+  .nav__link[aria-current='page'] {
+    background-color: var(--color-btn);
+    background-image: radial-gradient(50% 50% at 50% 0, rgb(255 255 255 / 80%) 0, transparent 100%);
+    box-shadow: 0 -4px 16px rgb(255 255 255 / 20%);
+  }
+
+  .nav__divider {
+    width: 1px;
+    height: 1.5rem;
+    margin-inline: var(--space-2);
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .nav__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: auto;
+  }
+
+  .nav__icon,
+  .nav__avatar,
+  .nav__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    color: var(--color-text);
+    transition: background-color var(--dur-instant) ease-in-out;
+  }
+
+  .nav__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-pill);
+  }
+
+  .nav__icon:hover,
+  .nav__menu-btn:hover {
+    background-color: rgb(255 255 255 / 10%);
+  }
+
+  .nav__avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: var(--space-2);
+    border-radius: var(--radius-pill);
+  }
+
+  .nav__menu-btn {
+    display: none;
+    gap: var(--space-1);
+    height: 2.5rem;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-8);
+    background: transparent;
+    font-size: var(--fs-18);
+    font-weight: 500;
+  }
+
+  /* Below 1280px the links fold into "Menu", as on primevideo.com. */
+  @media (max-width: 79.9375em) {
+    .nav__primary {
+      display: none;
+    }
+
+    .nav__menu-btn {
+      display: inline-flex;
+    }
+  }
+
+  /* Below 880px the wordmark centres and only search and the avatar stay. */
+  @media (max-width: 54.9375em) {
+    .nav__brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .nav__icon--wide {
+      display: none;
+    }
+
+    .nav__menu-btn {
+      font-size: var(--fs-16);
+    }
+  }
+
+  /* Popups: frosted panels under the nav, light-dismiss and Esc from the popover API. */
+  .popup {
+    position: fixed;
+    inset: auto;
+    top: calc(var(--nav-h) + var(--space-1));
+    margin: 0;
+    padding: var(--space-3);
+    border: 0;
+    border-radius: var(--radius-12);
+    background: var(--color-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-glass);
+    color: var(--color-text);
+  }
+
+  .popup ul {
+    display: grid;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-menu {
+    left: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
+    min-width: 15rem;
+  }
+
+  .profile-menu {
+    right: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
+    display: none;
+    gap: var(--space-6);
+    width: min(32rem, calc(100vw - 2 * var(--space-2)));
+  }
+
+  .profile-menu:popover-open {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 37.4375em) {
+    .profile-menu:popover-open {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .popup__heading {
+    margin: var(--space-1) var(--space-3) var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .popup__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 var(--space-3);
+    border: 0;
+    border-radius: var(--radius-8);
+    background: transparent;
+    color: var(--color-text);
+    font-size: var(--fs-16);
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  /* Prime's menus turn the hovered row into a light pill with dark text. */
+  .popup__item:hover {
+    background: var(--color-text-synopsis);
+    color: var(--color-on-light);
+  }
+
+  .popup__item[aria-current='page'] {
+    background: var(--color-btn);
+  }
+
+  .popup__avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+  }
+
+  .popup__profile :global(.popup__check) {
+    margin-left: auto;
+    visibility: hidden;
+  }
+
+  .popup__profile[aria-pressed='true'] :global(.popup__check) {
+    visibility: visible;
+  }
+</style>

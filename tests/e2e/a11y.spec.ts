@@ -14,3 +14,14 @@ for (const path of PAGES) {
     expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
   });
 }
+
+test('the open profile menu has no serious accessibility issues', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /^Profile menu/ }).click();
+  const { violations } = await new AxeBuilder({ page })
+    .include('#profile-menu')
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+  expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+});
