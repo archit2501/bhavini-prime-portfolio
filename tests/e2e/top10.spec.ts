@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('Top 10 ranks her proof numbers and links each to its title', async ({ page }) => {
   await page.goto('/');

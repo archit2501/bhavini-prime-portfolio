@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('series hero: lettering, actions, CTA, genres, cast and badges', async ({ page }) => {
   await page.goto('/title/f1jobs/');

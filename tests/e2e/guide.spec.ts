@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('the Career Guide is a table of channels and months', async ({ page }) => {
   await page.goto('/career-guide/');

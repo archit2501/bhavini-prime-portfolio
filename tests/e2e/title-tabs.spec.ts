@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('series open on Episodes with Prime-style numbered episodes', async ({ page }) => {
   await page.goto('/title/f1jobs/');

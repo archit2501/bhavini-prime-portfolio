@@ -20,7 +20,7 @@ const now = new Date();
 ---
 
 <!-- Row cards load lazily so the hero's key art, the LCP image, gets the bandwidth first. -->
-<BaseLayout>
+<BaseLayout picker>
   <h1 class="visually-hidden">{SITE.name}</h1>
   <HeroCarousel titles={rowTitles(catalog, 'hero')} />
   <div class="rows">
@@ -92,7 +92,58 @@ const now = new Date();
   <PreviewCard catalog={catalog} />
 </BaseLayout>
 
+<script>
+  import { orderRows, profileCta, readProfile, type ProfileId } from '../lib/profiles';
+  import { withBase } from '../lib/url';
+
+  // Each visitor's home: their rows first (moved in the DOM, so focus order matches what they
+  // see) and a call to action after "Open to roles" in the hero.
+  const rows = document.querySelector<HTMLElement>('.rows');
+  const apply = (profile: ProfileId | null) => {
+    if (rows) {
+      const byId = new Map(
+        [...rows.querySelectorAll<HTMLElement>(':scope > [data-row]')].map((r) => [
+          r.dataset.row ?? '',
+          r,
+        ]),
+      );
+      rows.append(...orderRows([...byId.keys()], profile).flatMap((id) => byId.get(id) ?? []));
+    }
+    const cta = profileCta(profile);
+    for (const line of document.querySelectorAll<HTMLElement>('.hero__entitle')) {
+      line.querySelector('[data-profile-cta]')?.remove();
+      if (!cta) continue;
+      const wrap = document.createElement('span');
+      wrap.dataset.profileCta = '';
+      const link = document.createElement('a');
+      link.className = 'hero__entitle-cta';
+      link.href = withBase(cta.href);
+      link.textContent = cta.label;
+      if (cta.download) link.download = '';
+      wrap.append(' · ', link);
+      line.append(wrap);
+    }
+  };
+  let saved: ProfileId | null = null;
+  try {
+    saved = readProfile(sessionStorage);
+  } catch {
+    /* storage blocked: the default home */
+  }
+  apply(saved);
+  document.addEventListener('profilechange', (e) =>
+    apply(((e as CustomEvent<string>).detail as ProfileId) ?? null),
+  );
+</script>
+
 <style>
+  :global(.hero__entitle-cta) {
+    color: var(--color-text);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
   /* The first row heading tucks 10px into the hero's faded bottom edge, as on primevideo.com. */
   .rows {
     position: relative;

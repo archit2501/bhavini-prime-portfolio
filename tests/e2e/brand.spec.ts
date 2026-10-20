@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('icons and the social image are linked and served', async ({ page, request }) => {
   await page.goto('/');
