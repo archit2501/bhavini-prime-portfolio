@@ -1,0 +1,38 @@
+---
+import { decodeContact, ENCODED_CONTACT, spellOut, type ContactKind } from '../lib/contact';
+
+interface Props {
+  kind: ContactKind;
+  /** Visible link text once decoded; defaults to the address or number itself. */
+  label?: string;
+  class?: string;
+}
+
+const { kind, label, class: className } = Astro.props;
+const encoded = ENCODED_CONTACT[kind];
+// Rendered at build time only; the page gets the spelled-out form, never the raw value.
+const fallback = spellOut(kind, decodeContact(encoded));
+---
+
+<span
+  class:list={['contact', className]}
+  data-contact={kind}
+  data-value={encoded}
+  data-label={label}
+>
+  {fallback}
+</span>
+
+<script>
+  import { contactLink, type ContactKind } from '../lib/contact';
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-contact][data-value]')) {
+    const { href, text } = contactLink(el.dataset.contact as ContactKind, el.dataset.value ?? '');
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = el.dataset.label ?? text;
+    if (el.dataset.label) a.setAttribute('aria-label', `${el.dataset.label}: ${text}`);
+    a.className = el.className;
+    el.replaceWith(a);
+  }
+</script>
