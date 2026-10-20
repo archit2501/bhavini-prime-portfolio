@@ -3,7 +3,13 @@ import { expect, test } from '@playwright/test';
 test('home rows follow the page order', async ({ page }) => {
   await page.goto('/');
   const titles = page.locator('[data-row] .row__title');
-  await expect(titles).toHaveText(['Bhavini Originals: Experience', 'Education', 'Certifications']);
+  await expect(titles).toHaveText([
+    'Continue watching',
+    "Top 10 in Bhavini's career",
+    'Bhavini Originals: Experience',
+    'Education',
+    'Certifications',
+  ]);
 });
 
 test('cards name their title for screen readers and open the detail page', async ({ page }) => {

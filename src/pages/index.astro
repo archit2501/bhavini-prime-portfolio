@@ -2,17 +2,19 @@
 import HeroCarousel from '../components/home/HeroCarousel.astro';
 import LandscapeCard from '../components/rows/LandscapeCard.astro';
 import Row from '../components/rows/Row.astro';
+import TopTenCard from '../components/rows/TopTenCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { artwork } from '../lib/artwork-assets';
 import { certificationCard, titleCard } from '../lib/cards';
-import { rowTitles } from '../lib/catalog';
+import { rowTitles, topTen } from '../lib/catalog';
 import { loadCatalog } from '../lib/content';
 import { SITE } from '../lib/site';
+import { seasonProgress, tenureLabel } from '../lib/tenure';
 import { withBase } from '../lib/url';
 
 const catalog = await loadCatalog();
-const titleRows = catalog.rows.filter((r) => r.kind === 'titles');
-const certRow = catalog.rows.find((r) => r.kind === 'certifications');
+// Build time stands in for "now": the Continue watching bar is as current as the last deploy.
+const now = new Date();
 ---
 
 <!-- Row cards load lazily so the hero's key art, the LCP image, gets the bandwidth first. -->
@@ -20,24 +22,59 @@ const certRow = catalog.rows.find((r) => r.kind === 'certifications');
   <h1 class="visually-hidden">{SITE.name}</h1>
   <HeroCarousel titles={rowTitles(catalog, 'hero')} />
   <div class="rows">
-    {titleRows.map((row) => (
-      <Row id={row.id} title={row.title} seeMore={withBase(`/browse/${row.id}/`)}>
-        {rowTitles(catalog, row.id).map((t) => (
-          <li>
-            <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
-          </li>
-        ))}
-      </Row>
-    ))}
-    {certRow && (
-      <Row id={certRow.id} title={certRow.title}>
-        {catalog.certifications.map((c) => (
-          <li>
-            <LandscapeCard {...certificationCard(c)} image={artwork(c.slug).card} />
-          </li>
-        ))}
-      </Row>
-    )}
+    {catalog.rows.map((row) => {
+      if (row.kind === 'continue') {
+        return (
+          <Row id={row.id} title={row.title}>
+            {rowTitles(catalog, row.id).map((t) => (
+              <li>
+                <LandscapeCard
+                  {...titleCard(t)}
+                  image={artwork(t.slug).card}
+                  progress={seasonProgress(t.start, now)}
+                  progressLabel={`Season 1, ${tenureLabel(t.start, now)}`}
+                />
+              </li>
+            ))}
+          </Row>
+        );
+      }
+      if (row.kind === 'top10') {
+        return (
+          <Row id={row.id} title={row.title} variant="top10">
+            {topTen(catalog).map((item) => (
+              <li>
+                <TopTenCard item={item} />
+              </li>
+            ))}
+          </Row>
+        );
+      }
+      if (row.kind === 'titles') {
+        return (
+          <Row id={row.id} title={row.title} seeMore={withBase(`/browse/${row.id}/`)}>
+            {rowTitles(catalog, row.id).map((t) => (
+              <li>
+                <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
+              </li>
+            ))}
+          </Row>
+        );
+      }
+      if (row.kind === 'certifications') {
+        return (
+          <Row id={row.id} title={row.title}>
+            {catalog.certifications.map((c) => (
+              <li>
+                <LandscapeCard {...certificationCard(c)} image={artwork(c.slug).card} />
+              </li>
+            ))}
+          </Row>
+        );
+      }
+      // The hero renders above; the skills row arrives with the Categories page (task 3.3.2).
+      return null;
+    })}
   </div>
 </BaseLayout>
 

@@ -1,0 +1,148 @@
+---
+import { Picture } from 'astro:assets';
+import type { TopTenItem } from '../../lib/catalog';
+import { artwork } from '../../lib/artwork-assets';
+import { withBase } from '../../lib/url';
+
+/**
+ * One Top 10 entry: Prime's giant grey rank numeral, with a 16:9 card tucked over its right edge.
+ * The card carries the proof number as real, display-size text (UX win from decision Q8) over the
+ * key art of the title it comes from, and opens that title.
+ */
+interface Props {
+  item: TopTenItem;
+}
+
+const { item } = Astro.props;
+const { key } = artwork(item.title.slug);
+---
+
+<div class="top">
+  <span class:list={['top__rank', { 'top__rank--wide': item.rank >= 10 }]} aria-hidden="true">
+    {item.rank}
+  </span>
+  <a class="top__card" href={withBase(`/title/${item.title.slug}/`)}>
+    <Picture
+      src={key}
+      alt=""
+      formats={['avif', 'webp']}
+      widths={[480, 640, 960]}
+      sizes="(min-width: 87.5em) 250px, (min-width: 55em) 22vw, 60vw"
+      quality={70}
+      loading="lazy"
+      decoding="async"
+      class="top__img"
+    />
+    <span class="top__text">
+      <span class="top__value">
+        <span class="visually-hidden">Number {item.rank}: </span>
+        {item.value}
+      </span>
+      <!-- prettier-ignore: no whitespace before the hidden comma, or screen readers say "revenue ," -->
+      <!-- prettier-ignore -->
+      <span class="top__label">{item.label}<span class="visually-hidden">,</span></span>
+      <span class="top__from">{item.title.title}</span>
+    </span>
+  </a>
+</div>
+
+<style>
+  .top {
+    display: grid;
+    grid-template-columns: 0.42fr 1fr;
+    align-items: end;
+    container-type: inline-size;
+  }
+
+  /* Prime's Top 10 numerals: as tall as the card, heavy, a light-to-mid grey gradient. */
+  .top__rank {
+    justify-self: end;
+    margin-right: -0.06em;
+    background: linear-gradient(180deg, #b9c0c7 0%, #59616b 70%, #2c3137 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 46cqw;
+    font-weight: 900;
+    line-height: 0.78;
+    letter-spacing: -0.06em;
+    font-variant-numeric: lining-nums;
+  }
+
+  .top__rank--wide {
+    margin-right: -0.12em;
+    font-size: 34cqw;
+    letter-spacing: -0.1em;
+  }
+
+  .top__card {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--color-chip);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .top__card :global(picture),
+  .top__card :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .top__card :global(img) {
+    object-fit: cover;
+    object-position: 75% 50%;
+  }
+
+  .top__card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgb(0 5 13 / 92%) 0%,
+      rgb(0 5 13 / 60%) 55%,
+      rgb(0 5 13 / 15%) 100%
+    );
+  }
+
+  .top__text {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2em;
+    padding: 0 7cqw;
+  }
+
+  .top__value {
+    font-size: 13cqw;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .top__label {
+    max-width: 40cqw;
+    color: var(--color-text-synopsis);
+    font-size: 3.8cqw;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .top__from {
+    margin-top: 0.4em;
+    color: var(--color-text-muted);
+    font-size: 2.6cqw;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>

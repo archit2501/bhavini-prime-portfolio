@@ -175,6 +175,8 @@ export function checkCatalog(catalog: Catalog): string[] {
       if (new Set(row.figures).size !== 10) errors.push(`${where}: needs 10 different figures`);
       for (const id of row.figures) {
         if (!catalog.figures[id]) errors.push(`${where}: unknown figure "${id}"`);
+        else if (!titleForFigure(catalog, id))
+          errors.push(`${where}: figure "${id}" belongs to no title`);
       }
     }
   }
@@ -194,6 +196,33 @@ export function rowTitles(catalog: Catalog, rowId: string): WithSlug<Title>[] {
   const row = catalog.rows.find((r) => r.id === rowId);
   if (!row || !('items' in row)) return [];
   return row.items.flatMap((slug) => titleBySlug(catalog, slug) ?? []);
+}
+
+export interface TopTenItem {
+  rank: number;
+  id: string;
+  value: string;
+  label: string;
+  /** The title the figure comes from; its key art and page back the card. */
+  title: WithSlug<Title>;
+}
+
+/** The title whose copy lists a figure, in catalog order. */
+export function titleForFigure(catalog: Catalog, figureId: string): WithSlug<Title> | undefined {
+  return catalog.titles.find((t) => t.figures.includes(figureId));
+}
+
+/** The Top 10 row: her proof numbers, ranked as listed in rows.json. O(10 x t). */
+export function topTen(catalog: Catalog): TopTenItem[] {
+  const row = catalog.rows.find((r) => r.kind === 'top10');
+  if (!row || row.kind !== 'top10') return [];
+  return row.figures.flatMap((id, i) => {
+    const figure = catalog.figures[id];
+    const title = titleForFigure(catalog, id);
+    return figure && title
+      ? [{ rank: i + 1, id, value: figure.value, label: figure.label, title }]
+      : [];
+  });
 }
 
 /** "id: value label" for each figure Bhavini hasn't confirmed yet. */

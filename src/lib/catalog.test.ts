@@ -11,6 +11,8 @@ import {
   relatedFor,
   rowTitles,
   titleBySlug,
+  titleForFigure,
+  topTen,
   titlesForSkill,
   unverifiedFigures,
   type Catalog,
@@ -184,6 +186,43 @@ describe('checkCatalog finds each kind of problem', () => {
       'row top10: needs 10 different figures',
       'row top10: unknown figure "ghost"',
     ]);
+  });
+});
+
+describe('topTen', () => {
+  const catalog = loadContent();
+
+  it('ranks her ten proof numbers and ties each to its title', () => {
+    const items = topTen(catalog);
+    expect(items.map((i) => `${i.rank}. ${i.value} ${i.label} (${i.title.slug})`)).toEqual([
+      '1. $100K+ in revenue (f1jobs)',
+      '2. 7+ successful sales (f1jobs)',
+      '3. 65% workflow efficiency gain (f1jobs)',
+      '4. 20+ customer tickets resolved (f1jobs)',
+      '5. 100+ product units a month (vastra-kala)',
+      '6. 5+ global regions (vastra-kala)',
+      '7. 8.81 CGPA (christ-university)',
+      '8. 20+ therapy and assessment sessions (clinical)',
+      '9. 50+ community members engaged (youth-for-parivarthan)',
+      '10. 90.4% in high school (cambridge-innovative-school)',
+    ]);
+  });
+
+  it('is empty without a Top 10 row, and skips figures with no title', () => {
+    const c = clone();
+    c.rows = c.rows.filter((r) => r.kind !== 'top10');
+    expect(topTen(c)).toEqual([]);
+    expect(titleForFigure(catalog, 'nope')).toBeUndefined();
+  });
+
+  it('flags a Top 10 figure that no title shows', () => {
+    const c = clone();
+    c.figures.orphan = { value: '1', label: 'x', source: 'y', verified: true };
+    const top = c.rows.find((r) => r.kind === 'top10');
+    if (top?.kind !== 'top10') throw new Error('no top10 row');
+    top.figures[9] = 'orphan';
+    expect(checkCatalog(c)).toEqual(['row top10: figure "orphan" belongs to no title']);
+    expect(topTen(c)).toHaveLength(9);
   });
 });
 

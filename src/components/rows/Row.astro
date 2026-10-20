@@ -13,9 +13,11 @@ interface Props {
   title: string;
   /** "See more" destination, when the row has its own page. */
   seeMore?: string;
+  /** "top10" makes room for the rank numeral beside each card. */
+  variant?: 'cards' | 'top10';
 }
 
-const { id, title, seeMore } = Astro.props;
+const { id, title, seeMore, variant = 'cards' } = Astro.props;
 const headingId = `row-${id}`;
 ---
 
@@ -32,7 +34,7 @@ const headingId = `row-${id}`;
     )}
   </div>
   <div class="row__viewport">
-    <ul class="row__track" data-track>
+    <ul class:list={['row__track', { 'row__track--top10': variant === 'top10' }]} data-track>
       <slot />
     </ul>
     <button
@@ -193,6 +195,40 @@ const headingId = `row-${id}`;
     .row__track {
       --cards: 6.2;
       --gaps: 6;
+    }
+  }
+
+  /* Top 10 entries are a numeral plus a card, so fewer fit per row. */
+  .row__track--top10 {
+    --cards: 1.15;
+    --gaps: 1;
+  }
+
+  @media (min-width: 37.5em) {
+    .row__track--top10 {
+      --cards: 1.6;
+      --gaps: 1;
+    }
+  }
+
+  @media (min-width: 55em) {
+    .row__track--top10 {
+      --cards: 3.05;
+      --gaps: 3;
+    }
+  }
+
+  @media (min-width: 87.5em) {
+    .row__track--top10 {
+      --cards: 3.75;
+      --gaps: 3;
+    }
+  }
+
+  @media (min-width: 112.5em) {
+    .row__track--top10 {
+      --cards: 4.4;
+      --gaps: 4;
     }
   }
 

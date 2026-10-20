@@ -19,9 +19,22 @@ interface Props {
   /** Slug the hover card (task 2.2.4) and My List (task 3.3.5) key off. */
   slug?: string;
   eager?: boolean;
+  /** Continue watching: how far along, 0-1, and how to say it ("5 months in"). */
+  progress?: number;
+  progressLabel?: string;
 }
 
-const { href, title, image, ribbon, description, slug, eager = false } = Astro.props;
+const {
+  href,
+  title,
+  image,
+  ribbon,
+  description,
+  slug,
+  eager = false,
+  progress,
+  progressLabel,
+} = Astro.props;
 ---
 
 <a class="card" href={href} data-card={slug}>
@@ -42,10 +55,16 @@ const { href, title, image, ribbon, description, slug, eager = false } = Astro.p
     </span>
   )}
   <Wordmark class="card__mark" height="0.875rem" decorative />
+  {progress !== undefined && (
+    <span class="card__progress" aria-hidden="true">
+      <span style={`width: ${Math.round(progress * 1000) / 10}%`} />
+    </span>
+  )}
   <span class="visually-hidden">
     {title}
     {description && `, ${description}`}
     {ribbon && `, ${ribbon.toLowerCase()}`}
+    {progressLabel && `, ${progressLabel}`}
   </span>
 </a>
 
@@ -83,6 +102,22 @@ const { href, title, image, ribbon, description, slug, eager = false } = Astro.p
     font-weight: 700;
     line-height: 1;
     text-transform: uppercase;
+  }
+
+  /* Prime's Continue watching bar: thin, blue fill on a dark track, along the card's foot. */
+  .card__progress {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 0.25rem;
+    background: rgb(255 255 255 / 25%);
+  }
+
+  .card__progress > span {
+    display: block;
+    height: 100%;
+    background: var(--color-accent);
   }
 
   .card :global(.card__mark) {
