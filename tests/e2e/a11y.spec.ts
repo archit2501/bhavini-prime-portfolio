@@ -14,6 +14,7 @@ const PAGES = [
   '/skills/collections/revenue-wins/',
   '/career-guide/',
   '/contact/',
+  '/my-list/',
   '/no-such-title/',
 ];
 

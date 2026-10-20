@@ -138,7 +138,9 @@ test('Next up counts down to the next title, and Hide cancels it', async ({ page
   await page.evaluate(() => document.querySelector('video')?.dispatchEvent(new Event('ended')));
   await expect(card).toBeVisible();
   await expect(card).toContainText('Next up in 10');
-  await expect(page.getByRole('status')).toHaveText('Next up: Vastra Kala, in 10 seconds');
+  await expect(page.locator('[data-player-status]')).toHaveText(
+    'Next up: Vastra Kala, in 10 seconds',
+  );
   await page.clock.runFor(4000);
   await expect(card).toContainText('Next up in 6');
   await card.getByRole('button', { name: 'Hide' }).click();

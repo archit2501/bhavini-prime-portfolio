@@ -1,0 +1,166 @@
+---
+import Bookmark from '@lucide/astro/icons/bookmark';
+import LandscapeCard from '../components/rows/LandscapeCard.astro';
+import PreviewCard from '../components/rows/PreviewCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { artwork } from '../lib/artwork-assets';
+import { titleCard } from '../lib/cards';
+import { RESUME_PATH } from '../lib/contact';
+import { loadCatalog } from '../lib/content';
+import { withBase } from '../lib/url';
+
+/**
+ * My List, Prime's watchlist: the titles saved with "+", newest first, kept in this browser. The
+ * page ships every title's card hidden and the browser shows the saved ones; with nothing saved
+ * (or no JavaScript) it shows the empty state.
+ */
+const catalog = await loadCatalog();
+---
+
+<BaseLayout title="My List" description="Titles you've saved from Bhavini Malhotra's portfolio.">
+  <section class="mylist gutter" aria-labelledby="mylist-title">
+    <div class="mylist__head">
+      <div>
+        <h1 class="mylist__title" id="mylist-title">
+          My List
+        </h1>
+        <p class="mylist__count" data-mylist-count>
+          Saved in this browser
+        </p>
+      </div>
+      <a class="mylist__resume" href={withBase(RESUME_PATH)} download>
+        Download resume
+      </a>
+    </div>
+
+    <ul class="mylist__grid" data-mylist-grid>
+      {catalog.titles.map((t) => (
+        <li data-mylist-item={t.slug} hidden>
+          <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
+        </li>
+      ))}
+    </ul>
+
+    <div class="mylist__empty" data-mylist-empty>
+      <Bookmark size={40} aria-hidden="true" />
+      <h2 class="mylist__empty-title">Your list is empty</h2>
+      <p>Press + on any title to save it here. It stays in this browser.</p>
+      <a class="mylist__browse" href={withBase('/browse/all/')}>
+        Browse all titles
+      </a>
+    </div>
+  </section>
+  <PreviewCard catalog={catalog} />
+</BaseLayout>
+
+<script>
+  import { onListChange } from '../scripts/my-list';
+
+  const items = new Map(
+    [...document.querySelectorAll<HTMLElement>('[data-mylist-item]')].map((li) => [
+      li.dataset.mylistItem ?? '',
+      li,
+    ]),
+  );
+  const empty = document.querySelector<HTMLElement>('[data-mylist-empty]');
+  const count = document.querySelector<HTMLElement>('[data-mylist-count]');
+  const grid = document.querySelector<HTMLElement>('[data-mylist-grid]');
+
+  // Show the saved titles, newest first; O(k) per change.
+  onListChange((list) => {
+    const saved = list.newestFirst().filter((id) => items.has(id));
+    items.forEach((li) => (li.hidden = true));
+    saved.forEach((id, i) => {
+      const li = items.get(id);
+      if (!li) return;
+      li.hidden = false;
+      li.style.order = String(i);
+    });
+    if (grid) grid.hidden = saved.length === 0;
+    if (empty) empty.hidden = saved.length > 0;
+    if (count) {
+      count.textContent = saved.length
+        ? `${saved.length} title${saved.length === 1 ? '' : 's'}, saved in this browser`
+        : 'Saved in this browser';
+    }
+  });
+</script>
+
+<style>
+  .mylist {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
+  }
+
+  .mylist__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .mylist__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .mylist__count {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+  }
+
+  .mylist__resume,
+  .mylist__browse {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 var(--space-6);
+    border-radius: var(--radius-8);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .mylist__resume {
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+  }
+
+  .mylist__browse {
+    background: var(--color-btn);
+    color: var(--color-text);
+  }
+
+  .mylist__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.6875rem), 1fr));
+    gap: var(--space-6) 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mylist__grid[hidden],
+  .mylist__empty[hidden] {
+    display: none;
+  }
+
+  .mylist__empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-12) var(--space-4);
+    border-radius: var(--radius-12);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  .mylist__empty-title {
+    color: var(--color-text);
+    font-size: var(--fs-24);
+    font-weight: 700;
+  }
+</style>

@@ -1,4 +1,5 @@
 ---
+import Check from '@lucide/astro/icons/check';
 import Play from '@lucide/astro/icons/play';
 import Plus from '@lucide/astro/icons/plus';
 import type { Catalog } from '../../lib/catalog';
@@ -72,7 +73,8 @@ const first = Object.values(data)[0];
         data-preview-list
         data-my-list=""
       >
-        <Plus size={26} aria-hidden="true" />
+        <Plus size={26} class="my-list__add" aria-hidden="true" />
+        <Check size={26} class="my-list__added" aria-hidden="true" />
         <span class="visually-hidden" data-preview-list-label>
           Add to My List
         </span>
@@ -98,6 +100,7 @@ const first = Object.values(data)[0];
 <script>
   import { previewGeometry, previewScale } from '../../lib/position';
   import type { PreviewData } from '../../lib/preview';
+  import { syncButton } from '../../scripts/my-list';
 
   const root = document.querySelector<HTMLElement>('[data-preview]');
   const dataEl = document.getElementById('preview-data');
@@ -107,7 +110,6 @@ const first = Object.values(data)[0];
     const media = root.querySelector<HTMLElement>('[data-preview-media]')!;
     const cta = root.querySelector<HTMLAnchorElement>('[data-preview-cta]')!;
     const list = root.querySelector<HTMLButtonElement>('[data-preview-list]')!;
-    const listLabel = root.querySelector<HTMLElement>('[data-preview-list-label]')!;
     const fields = root.querySelectorAll<HTMLElement>('[data-field]');
     const navH = () => document.querySelector('header.nav')?.getBoundingClientRect().height ?? 0;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -143,7 +145,8 @@ const first = Object.values(data)[0];
       art.href = d.detailsHref;
       list.hidden = !d.listable;
       list.dataset.myList = slug;
-      listLabel.textContent = `Add ${d.title} to My List`;
+      list.dataset.myListTitle = d.title;
+      syncButton(list);
 
       const rect = card.getBoundingClientRect();
       const scale = reduced.matches ? 1 : previewScale(window.innerWidth);
