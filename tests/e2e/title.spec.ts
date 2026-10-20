@@ -94,5 +94,5 @@ test('share copies the link where there is no share sheet', async ({
   await page.goto('/title/f1jobs/');
   await page.evaluate(() => Object.defineProperty(navigator, 'share', { value: undefined }));
   await page.getByRole('button', { name: 'Share' }).click();
-  await expect(page.getByRole('status')).toHaveText('Link copied');
+  await expect(page.locator('[data-hero-status]')).toHaveText('Link copied');
 });

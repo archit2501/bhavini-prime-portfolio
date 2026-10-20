@@ -128,3 +128,13 @@ button {
     animation: none !important;
   }
 }
+
+/* My List buttons: "+" until the title is in the list, then a check (src/scripts/my-list.ts). */
+[data-my-list] .my-list__added,
+[data-my-list][aria-pressed='true'] .my-list__add {
+  display: none;
+}
+
+[data-my-list][aria-pressed='true'] .my-list__added {
+  display: block;
+}

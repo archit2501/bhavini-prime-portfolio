@@ -1,4 +1,5 @@
 ---
+import Check from '@lucide/astro/icons/check';
 import Clapperboard from '@lucide/astro/icons/clapperboard';
 import Play from '@lucide/astro/icons/play';
 import Plus from '@lucide/astro/icons/plus';
@@ -85,8 +86,15 @@ const links = seriesLinks(catalog, t, base);
             <span class="visually-hidden">Watch trailer</span>
           </button>
         )}
-        <button class="ring-btn" type="button" aria-pressed="false" data-my-list={t.slug}>
-          <Plus size={24} aria-hidden="true" />
+        <button
+          class="ring-btn"
+          type="button"
+          aria-pressed="false"
+          data-my-list={t.slug}
+          data-my-list-title={t.title}
+        >
+          <Plus size={24} class="my-list__add" aria-hidden="true" />
+          <Check size={24} class="my-list__added" aria-hidden="true" />
           <span class="visually-hidden">Add {t.title} to My List</span>
         </button>
         <button class="ring-btn" type="button" aria-pressed="false" data-rate="like">

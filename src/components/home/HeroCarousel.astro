@@ -1,4 +1,5 @@
 ---
+import Check from '@lucide/astro/icons/check';
 import ChevronLeft from '@lucide/astro/icons/chevron-left';
 import ChevronRight from '@lucide/astro/icons/chevron-right';
 import Info from '@lucide/astro/icons/info';
@@ -107,8 +108,10 @@ const slides = titles.map((t, i) => ({
               aria-pressed="false"
               aria-label={`Add ${s.title} to My List`}
               data-my-list={s.slug}
+              data-my-list-title={s.title}
             >
-              <Plus size={30} aria-hidden="true" />
+              <Plus size={30} class="my-list__add" aria-hidden="true" />
+              <Check size={30} class="my-list__added" aria-hidden="true" />
             </button>
             <a class="round-btn" href={s.href} aria-label={`More details for ${s.title}`}>
               <Info size={28} aria-hidden="true" />

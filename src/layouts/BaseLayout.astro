@@ -71,8 +71,10 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
       <slot />
     </main>
     {footer && <Footer />}
+    <p class="visually-hidden" role="status" aria-live="polite" data-my-list-status></p>
     <script>
       import '../scripts/view-transitions';
+      import '../scripts/my-list';
     </script>
   </body>
 </html>
