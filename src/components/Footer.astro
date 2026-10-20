@@ -1,5 +1,8 @@
 ---
+import { RESUME_PATH } from '../lib/contact';
 import { SITE } from '../lib/site';
+import { withBase } from '../lib/url';
+import ContactLink from './ContactLink.astro';
 
 const year = 2026;
 ---
@@ -17,6 +20,14 @@ const year = 2026;
     <li>
       <a href={SITE.organization.url} rel="noopener" target="_blank">
         F1Jobs.io
+      </a>
+    </li>
+    <li>
+      <ContactLink kind="email" label="Email" />
+    </li>
+    <li>
+      <a href={withBase(RESUME_PATH)} download>
+        Resume (PDF)
       </a>
     </li>
     <li>
@@ -58,14 +69,16 @@ const year = 2026;
     list-style: none;
   }
 
-  .links a {
+  .links a,
+  .links :global(a.contact) {
     display: inline-block;
     min-height: 24px;
     color: var(--color-footer-link);
     text-decoration: none;
   }
 
-  .links a:hover {
+  .links a:hover,
+  .links :global(a.contact:hover) {
     text-decoration: underline;
   }
 </style>
