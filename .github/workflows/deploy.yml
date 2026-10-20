@@ -1,0 +1,78 @@
+name: Deploy
+
+# GitHub Pages, by hand only (plan task 4.2.2): run it from the Actions tab once CI is green on
+# main. It refuses any other branch, and any commit whose CI run didn't pass.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  ci-green:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Only main, and only once CI has passed on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::Deploy runs from main only (got ${{ github.ref }})"; exit 1
+          fi
+          conclusion=$(gh run list --repo "${{ github.repository }}" --workflow ci.yml \
+            --branch main --commit "${{ github.sha }}" --json conclusion --jq '.[0].conclusion')
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::CI on ${{ github.sha }} is '${conclusion:-not run}', not success"; exit 1
+          fi
+
+  build:
+    needs: ci-green
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: 'npm' }
+      - run: npm ci
+      # The public build refuses any figure Bhavini hasn't confirmed (REQUIRE_VERIFIED).
+      - run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+          SITE_URL: https://${{ github.repository_owner }}.github.io
+          REQUIRE_VERIFIED: '1'
+      - run: npx vitest run tests/brand-guard.test.ts tests/contact-privacy.test.ts
+      - uses: actions/upload-pages-artifact@v4
+        with: { path: dist }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    outputs:
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: 'npm' }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=desktop
+        env:
+          DEPLOYED_URL: ${{ needs.deploy.outputs.url }}
