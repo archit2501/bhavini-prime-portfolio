@@ -5,8 +5,7 @@ import ChevronRight from '@lucide/astro/icons/chevron-right';
 /**
  * A Prime Video row: a 20px/700 title with an inline "See more ›", then a horizontal track.
  * The track is native scroll with snap points; the edge chevrons page it, so nothing needs a
- * drag (WCAG 2.5.7). Off-screen rows skip rendering work until scrolled near
- * (content-visibility).
+ * drag (WCAG 2.5.7).
  */
 interface Props {
   id: string;
@@ -91,11 +90,13 @@ const headingId = `row-${id}`;
 </script>
 
 <style>
+  /*
+   * No content-visibility: with estimated heights, rows resized as they scrolled into view and
+   * shifted everything below them mid-scroll. Six rows cost nothing to lay out up front.
+   */
   .row {
     position: relative;
     margin-bottom: var(--space-8);
-    content-visibility: auto;
-    contain-intrinsic-size: auto 15rem;
   }
 
   .row__head {
