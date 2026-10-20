@@ -1,0 +1,29 @@
+{
+  "kind": "series",
+  "order": 4,
+  "title": "Youth for Parivarthan",
+  "role": "Student Volunteer",
+  "organization": "Youth for Parivarthan",
+  "location": "Bengaluru, India",
+  "start": "2024-06",
+  "end": "2024-11",
+  "ribbon": "DOCUSERIES",
+  "tagline": "Docuseries · Jun to Nov 2024",
+  "status": "5+ clean-up drives",
+  "synopsis": "Bhavini joined 5+ community clean-up drives in Bengaluru, each with 20–30 volunteers, and promoted responsible waste disposal to 50+ community members.",
+  "genres": ["professional"],
+  "figures": ["cleanups", "volunteers", "community"],
+  "season": 1,
+  "episodes": [
+    {
+      "title": "Clean Sweep",
+      "synopsis": "Contributed to 5+ community clean-up initiatives with 20–30 volunteers per event.",
+      "meta": "5+ drives"
+    },
+    {
+      "title": "Waste Not",
+      "synopsis": "Promoted responsible waste disposal practices, engaging 50+ community members.",
+      "meta": "50+ people"
+    }
+  ]
+}

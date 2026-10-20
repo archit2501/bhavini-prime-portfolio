@@ -1,0 +1,39 @@
+{
+  "kind": "series",
+  "order": 1,
+  "title": "F1Jobs.io",
+  "role": "Sales & Operations Executive",
+  "organization": "F1Jobs.io (Neurascribe Inc.)",
+  "location": "India",
+  "start": "2026-05",
+  "end": null,
+  "ribbon": "NEW EPISODES",
+  "tagline": "Now showing · Since May 2026",
+  "status": "$100K+ in revenue from 7+ sales",
+  "synopsis": "Bhavini runs sales and operations at F1Jobs.io, from the first lead to the closed deal. Seven sales in, she has brought in $100K+ in revenue, become the face of the brand online, and improved workflow efficiency by 65%.",
+  "genres": ["sales-business-development", "marketing-content", "operations"],
+  "figures": ["revenue", "deals", "workflow", "tickets"],
+  "season": 1,
+  "episodes": [
+    {
+      "title": "The Pipeline",
+      "synopsis": "She owns the B2B/D2C lead-generation pipeline: lead hunting, prospect identification, outreach, qualification and follow-up that turn into new business.",
+      "meta": "Lead generation"
+    },
+    {
+      "title": "Seven Sales",
+      "synopsis": "Generated $100,000+ in revenue through 7+ successful D2C sales by engaging prospects and supporting the company's core business model.",
+      "meta": "$100K+"
+    },
+    {
+      "title": "Face of the Brand",
+      "synopsis": "Leads social media marketing and appears as the face of F1Jobs.io on the company's website, strengthening brand presence and audience engagement.",
+      "meta": "Brand"
+    },
+    {
+      "title": "Ticket Zero",
+      "synopsis": "Manages customer-facing operations and resolved 20+ customer tickets, improving workflow efficiency by 65% through structured issue resolution and process coordination.",
+      "meta": "65% faster"
+    }
+  ]
+}

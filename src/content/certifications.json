@@ -1,0 +1,14 @@
+{
+  "hubspot-digital-marketing": {
+    "name": "Digital Marketing and Social Media Marketing",
+    "issuer": "HubSpot Academy",
+    "date": "2025-12",
+    "skills": ["marketing-content"]
+  },
+  "nptel-training-of-trainers": {
+    "name": "Training of Trainers",
+    "issuer": "NPTEL",
+    "date": "2024-10",
+    "skills": ["professional"]
+  }
+}

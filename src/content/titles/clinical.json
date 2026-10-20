@@ -1,0 +1,39 @@
+{
+  "kind": "series",
+  "order": 3,
+  "title": "ANR Hospital & AAS Rehab Centre",
+  "role": "Clinical Intern",
+  "organization": "ANR Hospital and AAS Rehab Centre",
+  "location": "Jalandhar, India",
+  "start": "2024-04",
+  "end": "2024-06",
+  "ribbon": "LIMITED SERIES",
+  "tagline": "Limited series · Apr to Jun 2024",
+  "status": "20+ therapy and assessment sessions",
+  "synopsis": "A psychology student steps into the clinic. Across 20+ therapy and assessment sessions, Bhavini documented case histories, supported reflective exercises and ran intake interviews that fed into treatment planning.",
+  "genres": ["psychology"],
+  "figures": ["sessions", "caseHistories", "intakes"],
+  "season": 1,
+  "episodes": [
+    {
+      "title": "Observation",
+      "synopsis": "Observed and assisted in 20+ therapy and psychological assessment sessions, gaining hands-on exposure to clinical workflows.",
+      "meta": "20+ sessions"
+    },
+    {
+      "title": "Case Histories",
+      "synopsis": "Documented 4+ detailed case histories covering psychological, occupational and social factors for accurate records.",
+      "meta": "4+ histories"
+    },
+    {
+      "title": "Reflection",
+      "synopsis": "Supported reflective exercises during supervised therapy sessions, contributing to improved client self-awareness.",
+      "meta": "Supervised"
+    },
+    {
+      "title": "Intake",
+      "synopsis": "Conducted or assisted with 8–12 structured intake interviews, supporting data-driven treatment planning.",
+      "meta": "8–12 intakes"
+    }
+  ]
+}
