@@ -1,0 +1,145 @@
+/*
+ * Design tokens. Values are measured from primevideo.com on 2026-10-20
+ * (research/04-live-inspection.md); judgement calls are marked.
+ *
+ * Breakpoints (Prime's own): 28em 448px · 37.5em 600px · 55em 880px · 80em 1280px · 87.5em 1400px
+ * · 112.5em 1800px. Plain CSS can't share @media values, so src/lib/breakpoints.ts mirrors them.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --color-bg: #00050d;
+  --color-surface: #191e25; /* menus, guide blocks, glass base */
+  --color-surface-raised: #252e39;
+  --color-chip: #33373d; /* rating chips, inputs, card placeholder */
+  --color-panel: #000000; /* expanded hover-card body */
+  --color-glass: rgb(25 30 37 / 80%); /* frosted nav and search panel, with --blur-glass */
+  --blur-glass: blur(16px);
+
+  /* Text */
+  --color-text: #ffffff;
+  --color-text-synopsis: #f1f1f1;
+  --color-text-muted: #aaaaaa; /* episode synopsis, episode count */
+  --color-text-meta: #999999; /* year, duration, inactive tabs */
+  --color-text-subtle: #b3b3b3; /* episode dates, separators */
+  --color-footer-text: #8197a4;
+  --color-footer-link: #79b8f3;
+  --color-on-light: #00050d; /* text on white buttons and ribbons */
+
+  /* Accents */
+  --color-accent: #1a98ff; /* Prime blue */
+  --color-accent-strong: rgb(26 152 255 / 80%); /* nav call-to-action fill */
+  --color-check: #0070f0; /* "Open to roles" check icon */
+  --color-crown: #ffd62c;
+  --color-mint: #37f1a3; /* ranking / status line */
+  --color-live: #ff0019;
+
+  /* Buttons */
+  --color-btn: rgb(255 255 255 / 20%);
+  --color-btn-hover: rgb(255 255 255 / 30%); /* judgement: hover is not measurable logged-out */
+  --color-btn-outline-bg: rgb(0 5 13 / 40%);
+  --color-btn-outline-border: rgb(255 255 255 / 35%);
+  --color-btn-solid: #ffffff;
+
+  /* Type: Inter stands in for Prime's proprietary UI face, Archivo (wide) for title art */
+  --font-sans: 'Inter Variable', 'Inter Fallback', arial, sans-serif;
+  --font-display: 'Archivo Variable', 'Arial Black', arial, sans-serif;
+  --fs-11: 0.6875rem; /* small ribbons */
+  --fs-13: 0.8125rem; /* chips */
+  --fs-14: 0.875rem; /* hover-card meta */
+  --fs-15: 0.9375rem; /* footer */
+  --fs-16: 1rem; /* body, nav */
+  --fs-18: 1.125rem; /* synopsis, tabs */
+  --fs-20: 1.25rem; /* row titles, CTA */
+  --fs-24: 1.5rem; /* hover-card title */
+  --fs-32: 2rem; /* page titles */
+  --fs-50: 3.125rem; /* hero text title */
+  --lh-body: 1.5;
+  --lh-tight: 1.15;
+  --tracking-nav: 0.04em; /* 0.64px at 16px */
+  --tracking-tab: 0.06em; /* 1.08px at 18px */
+
+  /* Responsive layout: gutter 24 -> 44 -> 72px, nav 48 -> 60 -> 66px, row title 16 -> 18 -> 20px */
+  --gutter: 1.5rem;
+  --nav-h: 3rem;
+  --fs-row-title: var(--fs-16);
+  --cta-h: 3.75rem;
+  --cta-fs: var(--fs-18);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --card-gap: 0.625rem; /* 10px between row cards */
+
+  /* Shape */
+  --radius-chip: 3px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-pill: 10000px;
+  --shadow-glass: 0 4px 4px rgb(0 0 0 / 30%), 0 8px 12px 6px rgb(0 0 0 / 15%);
+  --shadow-card: 0 4px 8px 2px rgb(0 5 13 / 50%);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0.45, 0, 1);
+  --ease-cta: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-instant: 100ms; /* nav pills, glass */
+  --dur-fast: 200ms; /* buttons */
+  --dur-base: 300ms; /* hover-card scale */
+  --dur-fade: 800ms; /* hero cross-fade */
+  --hover-delay: 100ms;
+  --hover-scale: 1.56;
+
+  /* Layers */
+  --z-row: 1;
+  --z-card-active: 10;
+  --z-nav: 100;
+  --z-overlay: 200;
+  --z-intro: 300;
+}
+
+@media (min-width: 28em) {
+  :root {
+    --fs-row-title: var(--fs-18);
+  }
+}
+
+@media (min-width: 55em) {
+  :root {
+    --gutter: 2.75rem;
+    --nav-h: 3.75rem;
+  }
+}
+
+@media (min-width: 80em) {
+  :root {
+    --fs-row-title: var(--fs-20);
+    --cta-h: 3.875rem;
+    --cta-fs: var(--fs-20);
+  }
+}
+
+@media (min-width: 87.5em) {
+  :root {
+    --gutter: 4.5rem;
+    --nav-h: 4.125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-fade: 0ms;
+    --hover-delay: 0ms;
+    --hover-scale: 1;
+  }
+}

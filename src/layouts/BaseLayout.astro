@@ -1,0 +1,53 @@
+---
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import Footer from '../components/Footer.astro';
+import { jsonLdScript, pageTitle, personJsonLd, SITE } from '../lib/site';
+import { withBase } from '../lib/url';
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+
+interface Props {
+  /** Page name; omitted on the home page. */
+  title?: string;
+  description?: string;
+  /** Keeps the page out of search results (404 and other utility pages). */
+  noindex?: boolean;
+}
+
+const { title, description = SITE.description, noindex = false } = Astro.props;
+const fullTitle = pageTitle(title);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const homeUrl = new URL(withBase('/'), Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en" id="top">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#00050D" />
+    <meta name="color-scheme" content="dark" />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <script type="application/ld+json" set:html={jsonLdScript(personJsonLd(homeUrl))} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <slot name="header" />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,71 @@
+---
+import { SITE } from '../lib/site';
+
+const year = 2026;
+---
+
+<footer class="footer gutter">
+  <p class="wordmark" aria-hidden="true">
+    bhavini
+  </p>
+  <ul class="links">
+    <li>
+      <a href={SITE.linkedin} rel="me noopener" target="_blank">
+        LinkedIn
+      </a>
+    </li>
+    <li>
+      <a href={SITE.organization.url} rel="noopener" target="_blank">
+        F1Jobs.io
+      </a>
+    </li>
+    <li>
+      <a href="#top">Back to top</a>
+    </li>
+    <li class="copyright">
+      © {year} {SITE.name}
+    </li>
+  </ul>
+  <p class="disclaimer">{SITE.disclaimer}</p>
+</footer>
+
+<style>
+  /* Prime's footer: centred wordmark, one line of blue links, copyright in the grey-blue. */
+  .footer {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-12) var(--space-8);
+    color: var(--color-footer-text);
+    font-size: var(--fs-15);
+    text-align: center;
+  }
+
+  .wordmark {
+    color: var(--color-footer-text);
+    font-size: var(--fs-20);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .links a {
+    display: inline-block;
+    min-height: 24px;
+    color: var(--color-footer-link);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+  }
+</style>
