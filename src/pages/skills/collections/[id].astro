@@ -53,6 +53,10 @@ if (!collection) throw new Error(`No collection "${Astro.params.id}"`);
   }
 
   .collection__eyebrow a {
+    /* 24px tall, like every other control (WCAG 2.5.8). */
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
     color: #4a8ff5;
     font-size: var(--fs-14);
     font-weight: 700;
