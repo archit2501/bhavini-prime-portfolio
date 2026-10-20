@@ -102,14 +102,16 @@ const links = seriesLinks(catalog, t, base);
           <span class="visually-hidden">Share</span>
         </button>
       </div>
-      <a class="dh__cta" href={withBase(`/watch/${t.slug}/`, base)}>
-        <Play size={26} fill="currentColor" aria-hidden="true" />
-        <span class="dh__cta-text">
-          {meta.cta.map((line) => (
-            <span>{line}</span>
-          ))}
-        </span>
-      </a>
+      {meta.watchHref && (
+        <a class="dh__cta" href={meta.watchHref}>
+          <Play size={26} fill="currentColor" aria-hidden="true" />
+          <span class="dh__cta-text">
+            {meta.cta.map((line) => (
+              <span>{line}</span>
+            ))}
+          </span>
+        </a>
+      )}
       <p class="dh__entitle">
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="8" cy="8" r="8" fill="#0070f0"></circle>

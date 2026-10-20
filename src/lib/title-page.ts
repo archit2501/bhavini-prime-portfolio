@@ -1,6 +1,7 @@
 import { runtimeYears, type Catalog, type WithSlug } from './catalog';
 import type { Title } from './catalog-schema';
 import { periodChip } from './carousel';
+import { watchTarget } from './player';
 import { withBase } from './url';
 
 export interface DetailMeta {
@@ -10,8 +11,10 @@ export interface DetailMeta {
   trailing: string[];
   /** Small badges in the right-hand column. */
   badges: string[];
-  /** Two-line CTA for a series ("Episode 1" / "Watch now"), one line for a film. */
+  /** Two-line CTA for a series ("Episode 1" / "Watch now"), one line for a film, and "Watch the
+   * sequel" for a title with no trailer of its own. Empty when there is nothing to play. */
   cta: string[];
+  watchHref?: string;
 }
 
 /** Everything the detail hero shows beyond the title's own fields. O(genres). */
@@ -25,6 +28,7 @@ export function detailMeta(
     const skill = catalog.skills.find((s) => s.slug === g);
     return skill ? [{ name: skill.name, href: withBase(`/skills/${g}/`, base) }] : [];
   });
+  const watch = watchTarget(catalog, t);
   const place = t.location
     .replace(/\s*\(.*\)$/, '')
     .split(',')[0]
@@ -37,7 +41,14 @@ export function detailMeta(
       ...(t.kind === 'film' && runtimeYears(t) ? [runtimeYears(t) as string] : []),
       ...(hasCaptions ? ['CC'] : []),
     ],
-    cta: t.kind === 'series' ? ['Episode 1', 'Watch now'] : ['Watch now'],
+    cta: !watch
+      ? []
+      : watch.slug !== t.slug
+        ? ['Watch the sequel', watch.title]
+        : t.kind === 'series'
+          ? ['Episode 1', 'Watch now']
+          : ['Watch now'],
+    watchHref: watch && withBase(`/watch/${watch.slug}/`, base),
   };
 }
 

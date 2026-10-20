@@ -14,11 +14,18 @@ interface Props {
   description?: string;
   /** Keeps the page out of search results (404 and other utility pages). */
   noindex?: boolean;
-  /** Full-screen pages (player, profile picker) hide the top navigation. */
+  /** Full-screen pages (player, profile picker) hide the top navigation and the footer. */
   nav?: boolean;
+  footer?: boolean;
 }
 
-const { title, description = SITE.description, noindex = false, nav = true } = Astro.props;
+const {
+  title,
+  description = SITE.description,
+  noindex = false,
+  nav = true,
+  footer = true,
+} = Astro.props;
 const fullTitle = pageTitle(title);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const homeUrl = new URL(withBase('/'), Astro.site).href;
@@ -63,7 +70,7 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
+    {footer && <Footer />}
     <script>
       import '../scripts/view-transitions';
     </script>

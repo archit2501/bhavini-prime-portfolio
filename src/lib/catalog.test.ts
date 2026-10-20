@@ -289,6 +289,16 @@ describe('previewData', () => {
     expect(d.f1jobs.meta).toBe('Series · 1 episode');
     expect(d[c.certifications[0].slug].ctaHref).toBe('/skills/');
   });
+
+  it("plays the school prequel's sequel, or opens the page when nothing plays", () => {
+    expect(data['cambridge-innovative-school'].ctaHref).toBe('/watch/christ-university/');
+    const c = clone();
+    const school = c.titles.find((t) => t.slug === 'cambridge-innovative-school');
+    if (school) school.sequel = undefined;
+    expect(previewData(c, '/')['cambridge-innovative-school'].ctaHref).toBe(
+      '/title/cambridge-innovative-school/',
+    );
+  });
 });
 
 describe('assertCatalog', () => {

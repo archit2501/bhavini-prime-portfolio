@@ -52,7 +52,20 @@ describe('detailMeta', () => {
       trailing: ['Phagwara', '2025'],
       badges: ['Series', 'CC'],
       cta: ['Episode 1', 'Watch now'],
+      watchHref: '/watch/vastra-kala/',
     });
+  });
+
+  it('sends a title with no trailer to its sequel, or nowhere', () => {
+    const sequel = { ...title, slug: 'christ-university', title: 'Christ University' };
+    const prequel = { ...title, slug: 'school', kind: 'film' as const, sequel: sequel.slug };
+    const withTitles = { ...catalog, titles: [sequel, prequel] } as unknown as Catalog;
+    const meta = detailMeta(withTitles, prequel, false, '/');
+    expect(meta.cta).toEqual(['Watch the sequel', 'Christ University']);
+    expect(meta.watchHref).toBe('/watch/christ-university/');
+    const alone = detailMeta(withTitles, { ...prequel, sequel: undefined }, false, '/');
+    expect(alone.cta).toEqual([]);
+    expect(alone.watchHref).toBeUndefined();
   });
 
   it('gives films a one-line CTA and no CC badge without captions', () => {
@@ -71,15 +84,21 @@ describe('detailMeta', () => {
 });
 
 describe('trailerFor', () => {
-  it('lists the three trailers and their files', () => {
-    expect(TRAILER_SLUGS).toEqual(['f1jobs', 'vastra-kala', 'christ-university']);
+  it('lists the five trailers and their files', () => {
+    expect(TRAILER_SLUGS).toEqual([
+      'f1jobs',
+      'vastra-kala',
+      'christ-university',
+      'clinical',
+      'youth-for-parivarthan',
+    ]);
     expect(trailerFor('f1jobs', '/x')).toEqual({
       webm: '/x/trailers/f1jobs.webm',
       mp4: '/x/trailers/f1jobs.mp4',
       poster: '/x/trailers/f1jobs-poster.jpg',
       captions: '/x/trailers/f1jobs.vtt',
     });
-    expect(trailerFor('clinical')).toBeUndefined();
+    expect(trailerFor('cambridge-innovative-school')).toBeUndefined();
     expect(trailerFor('f1jobs')?.mp4).toBe('/trailers/f1jobs.mp4');
   });
 });

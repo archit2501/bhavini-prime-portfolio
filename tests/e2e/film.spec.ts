@@ -9,17 +9,17 @@ test('education is a film with its own credit and a prequel', async ({ page }) =
   await page.getByRole('link', { name: 'Cambridge Innovative School' }).first().click();
   await expect(page).toHaveURL(/\/title\/cambridge-innovative-school\/$/);
   await expect(page.getByText('Sequel:')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Christ University' }).first()).toHaveAttribute(
-    'href',
-    '/title/christ-university/',
-  );
+  await expect(
+    page.getByRole('link', { name: 'Christ University', exact: true }).first(),
+  ).toHaveAttribute('href', '/title/christ-university/');
 });
 
 test('every title page ends with Recruiters also viewed', async ({ page }) => {
-  await page.goto('/title/clinical/');
+  await page.goto('/title/cambridge-innovative-school/');
   const row = page.getByRole('region', { name: 'Recruiters also viewed' });
   await expect(row.locator('.card')).toHaveCount(5);
-  await expect(row.locator('[data-card="clinical"]')).toHaveCount(0);
+  await expect(row.locator('[data-card="cambridge-innovative-school"]')).toHaveCount(0);
+  // The school prequel is the one title without a trailer.
   await expect(page.getByRole('region', { name: 'Trailers' })).toHaveCount(0);
 });
 

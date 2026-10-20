@@ -10,6 +10,7 @@ import type { Title } from '../../lib/catalog-schema';
 import type { WithSlug } from '../../lib/catalog';
 import { artwork } from '../../lib/artwork-assets';
 import { periodChip } from '../../lib/carousel';
+import { hasTrailer } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
 import Wordmark from '../brand/Wordmark.astro';
 import TitleLogo from '../title/TitleLogo.astro';
@@ -31,7 +32,8 @@ const slides = titles.map((t, i) => ({
   art: artwork(t.slug),
   chip: periodChip(t.start, t.end),
   href: withBase(`/title/${t.slug}/`),
-  watch: withBase(`/watch/${t.slug}/`),
+  // Every hero title has a trailer today; one without would open its page instead.
+  watch: withBase(hasTrailer(t.slug) ? `/watch/${t.slug}/` : `/title/${t.slug}/`),
 }));
 ---
 

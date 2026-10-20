@@ -9,7 +9,7 @@ npm run art                     # from the repo root: key art and title letterin
 npm run trailers:assets         # copies key art, lettering, ident and font into assets/
 cd media/trailers
 npx hyperframes check .
-for s in f1jobs vastra-kala christ-university; do
+for s in f1jobs vastra-kala christ-university clinical youth-for-parivarthan; do
   npx hyperframes render . --strict-variables --variables-file variables/$s.json --crf 23 -o renders/$s.mp4
 done
 cd ../..
