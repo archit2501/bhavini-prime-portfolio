@@ -1,7 +1,8 @@
 # Trailers (task 1.3.3)
 
-Three 12-second, 1920x1080, muted title trailers made with HyperFrames: F1Jobs.io, Vastra Kala and
-Christ University. One composition (`index.html`) and one variables file per title
+Five 12-second, 1920x1080, muted title trailers made with HyperFrames: F1Jobs.io, Vastra Kala,
+ANR Hospital & AAS Rehab Centre, Youth for Parivarthan and Christ University (task 3.2.1 added the
+last two). One composition (`index.html`) and one variables file per title
 (`variables/<slug>.json`). Beats and design notes are in `shot-plan.json`.
 
 ```bash
