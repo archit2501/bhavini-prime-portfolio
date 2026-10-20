@@ -1,0 +1,261 @@
+---
+import type { Catalog, WithSlug } from '../../lib/catalog';
+import { episodesFor, relatedFor } from '../../lib/catalog';
+import type { Title } from '../../lib/catalog-schema';
+import { artwork } from '../../lib/artwork-assets';
+import { titleCard } from '../../lib/cards';
+import { tabsFor } from '../../lib/title-page';
+import { withBase } from '../../lib/url';
+import LandscapeCard from '../rows/LandscapeCard.astro';
+import DetailsPanel from './DetailsPanel.astro';
+import EpisodeGrid from './EpisodeGrid.astro';
+
+/**
+ * Prime's detail-page tabs, measured: 18px/500 with 1.08px tracking, 66px tall, the active tab
+ * white with a 3px underline, the others #999; the bar sticks under the nav. ARIA tabs with
+ * arrow keys, Home and End, and #episodes / #related / #details deep links. Without JavaScript
+ * every panel shows, one after another.
+ */
+interface Props {
+  catalog: Catalog;
+  title: WithSlug<Title>;
+}
+
+const { catalog, title: t } = Astro.props;
+const tabs = tabsFor(t);
+const episodes = episodesFor(t);
+const related = relatedFor(catalog, t.slug, 6);
+const art = artwork(t.slug);
+---
+
+<section class="tabs gutter" aria-label={`More about ${t.title}`} data-tabs>
+  {t.kind === 'series' && episodes.length > 0 && (
+    <div class="tabs__season">
+      <h2 class="tabs__season-name">Season {t.season ?? 1}</h2>
+    </div>
+  )}
+  <div class="tabs__bar" data-tabs-bar>
+    <div role="tablist" aria-label={`${t.title} sections`} class="tabs__list" hidden data-tablist>
+      {tabs.map((tab, i) => (
+        <button
+          role="tab"
+          type="button"
+          id={`tab-${tab.id}`}
+          aria-controls={`panel-${tab.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          data-tab={tab.id}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {tabs.map((tab) => (
+    <div
+      class="tabs__panel"
+      id={`panel-${tab.id}`}
+      role="tabpanel"
+      aria-labelledby={`tab-${tab.id}`}
+      data-panel={tab.id}
+    >
+      <h2 class="tabs__fallback-heading">{tab.label}</h2>
+      {tab.id === 'episodes' && (
+        <>
+          <p class="tabs__count">{episodes.length} episodes</p>
+          <EpisodeGrid
+            episodes={episodes}
+            stills={art.stills}
+            watchHref={withBase(`/watch/${t.slug}/`)}
+            season={t.season ?? 1}
+          />
+        </>
+      )}
+      {tab.id === 'related' && (
+        <ul class="tabs__related">
+          {related.map((r) => (
+            <li>
+              <LandscapeCard {...titleCard(r)} image={artwork(r.slug).card} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {tab.id === 'details' && <DetailsPanel catalog={catalog} title={t} />}
+    </div>
+  ))}
+</section>
+
+<script>
+  import { nextTab, tabFromHash, type TabId } from '../../lib/title-page';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
+    const list = root.querySelector<HTMLElement>('[data-tablist]');
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+    if (!list || !tabs.length) continue;
+
+    const select = (id: TabId, focus = false) => {
+      tabs.forEach((tab) => {
+        const on = tab.dataset.tab === id;
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+        if (on && focus) tab.focus();
+      });
+      panels.forEach((p) => (p.hidden = p.dataset.panel !== id));
+    };
+
+    root.dataset.enhanced = 'true';
+    list.hidden = false;
+    const ids = tabs.map((t) => ({ id: t.dataset.tab as TabId }));
+    select(tabFromHash(location.hash, ids));
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        const id = tab.dataset.tab as TabId;
+        select(id);
+        history.replaceState(null, '', `#${id}`);
+      });
+      tab.addEventListener('keydown', (e) => {
+        const next = nextTab(i, tabs.length, e.key);
+        if (next === undefined) return;
+        e.preventDefault();
+        const id = tabs[next].dataset.tab as TabId;
+        select(id, true);
+        history.replaceState(null, '', `#${id}`);
+      });
+    });
+    window.addEventListener('hashchange', () => select(tabFromHash(location.hash, ids)));
+
+    // Frosted when stuck under the nav, like Prime's tab bar joining the nav container.
+    const bar = root.querySelector<HTMLElement>('[data-tabs-bar]');
+    const watchStuck = (el: HTMLElement) => {
+      const navH =
+        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) * 16;
+      // WebKit can run this before the stylesheet arrives; the nav height is known by load.
+      if (!Number.isFinite(navH)) return false;
+      new IntersectionObserver(([e]) => (el.dataset.stuck = String(e.intersectionRatio < 1)), {
+        rootMargin: `-${navH + 1}px 0px 0px 0px`,
+        threshold: 1,
+      }).observe(el);
+      return true;
+    };
+    if (bar && 'IntersectionObserver' in window && !watchStuck(bar)) {
+      window.addEventListener('load', () => watchStuck(bar), { once: true });
+    }
+  }
+</script>
+
+<style>
+  .tabs {
+    position: relative;
+    padding-block: var(--space-6) var(--space-12);
+  }
+
+  .tabs__season-name {
+    font-size: var(--fs-20);
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .tabs__bar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: calc(var(--z-nav) - 1);
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+
+  .tabs__bar::before {
+    content: '';
+    position: absolute;
+    inset: 0 max(0px, calc(var(--gutter) - 1.3125rem));
+    z-index: -1;
+    border-radius: 0 0 var(--radius-12) var(--radius-12);
+    background: var(--color-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-glass);
+    opacity: 0;
+    transition: opacity var(--dur-instant) linear;
+  }
+
+  .tabs__bar[data-stuck='true']::before {
+    opacity: 1;
+  }
+
+  .tabs__list {
+    display: flex;
+    gap: 1.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  [role='tab'] {
+    position: relative;
+    flex: none;
+    min-height: 4.125rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-meta);
+    font-size: var(--fs-18);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tab);
+    transition: color var(--dur-fast) ease-in-out;
+  }
+
+  [role='tab']:hover {
+    color: var(--color-text);
+  }
+
+  [role='tab'][aria-selected='true'] {
+    color: var(--color-text);
+  }
+
+  [role='tab'][aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--color-text);
+  }
+
+  .tabs__panel {
+    padding-top: var(--space-6);
+    scroll-margin-top: calc(var(--nav-h) + 4.125rem);
+  }
+
+  /* With JavaScript the tabs label the panels; without it, each panel keeps its own heading. */
+  .tabs[data-enhanced='true'] .tabs__fallback-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .tabs__fallback-heading {
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-20);
+    font-weight: 700;
+  }
+
+  .tabs__count {
+    margin-bottom: var(--space-6);
+    color: var(--color-text-muted);
+    font-size: var(--fs-20);
+  }
+
+  .tabs__related {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.6875rem), 1fr));
+    gap: var(--space-6) 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

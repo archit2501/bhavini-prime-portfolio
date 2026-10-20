@@ -10,12 +10,13 @@ test('series hero: lettering, actions, CTA, genres, cast and badges', async ({ p
   }
   const cta = page.getByRole('link', { name: 'Episode 1 Watch now' });
   await expect(cta).toHaveAttribute('href', '/watch/f1jobs/');
-  await expect(page.getByText('$100K+ in revenue from 7+ sales')).toBeVisible();
+  const hero = page.locator('[data-detail-hero]');
+  await expect(hero.getByText('$100K+ in revenue from 7+ sales')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sales & Business Development' })).toHaveAttribute(
     'href',
     '/skills/sales-business-development/',
   );
-  await expect(page.getByText('as Sales & Operations Executive')).toBeVisible();
+  await expect(hero.getByText('as Sales & Operations Executive')).toBeVisible();
   await expect(page.getByRole('list', { name: 'Badges' }).getByRole('listitem')).toHaveText([
     'Series',
     'CC',
@@ -68,7 +69,7 @@ test('the trailer button plays the trailer full-bleed and Esc stops it', async (
 test('scrolling in plays the trailer full-bleed, scrolling back stops it', async ({ page }) => {
   await page.goto('/title/f1jobs/');
   const hero = page.locator('[data-detail-hero]');
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.evaluate(() => window.scrollTo(0, 300));
   await expect(hero).toHaveAttribute('data-immersive', 'true');
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(hero).toHaveAttribute('data-immersive', 'false');

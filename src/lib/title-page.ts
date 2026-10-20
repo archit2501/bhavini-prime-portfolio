@@ -36,3 +36,39 @@ export function detailMeta(
     cta: t.kind === 'series' ? ['Episode 1', 'Watch now'] : ['Watch now'],
   };
 }
+
+export type TabId = 'episodes' | 'related' | 'details';
+
+/** Series get Episodes first; films, like Prime's movies, open on Related. */
+export function tabsFor(t: Title): { id: TabId; label: string }[] {
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'related', label: 'Related' },
+    { id: 'details', label: 'Details' },
+  ];
+  return t.kind === 'series' && t.episodes?.length
+    ? [{ id: 'episodes', label: 'Episodes' }, ...tabs]
+    : tabs;
+}
+
+/** The tab a URL hash asks for, or the first tab. */
+export function tabFromHash(hash: string, tabs: { id: TabId }[]): TabId {
+  const wanted = hash.replace(/^#/, '');
+  return tabs.find((t) => t.id === wanted)?.id ?? tabs[0].id;
+}
+
+/** Arrow-key movement along a tab list, wrapping at the ends (ARIA tabs pattern). */
+export function nextTab(index: number, count: number, key: string): number | undefined {
+  if (key === 'ArrowRight') return (index + 1) % count;
+  if (key === 'ArrowLeft') return (index - 1 + count) % count;
+  if (key === 'Home') return 0;
+  if (key === 'End') return count - 1;
+  return undefined;
+}
+
+/** The title's confirmed figures, as "value label" pairs for the Details panel. */
+export function titleFigures(catalog: Catalog, t: Title): { value: string; label: string }[] {
+  return t.figures.flatMap((id) => {
+    const f = catalog.figures[id];
+    return f ? [{ value: f.value, label: f.label }] : [];
+  });
+}
