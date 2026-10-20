@@ -62,6 +62,10 @@ test.describe('mouse', () => {
   test('the open card has no serious accessibility issues', async ({ page }) => {
     await page.goto('/');
     await hover(page, 'f1jobs');
+    // Measure contrast on the settled card, not mid-grow while its text is still fading in.
+    await preview(page).evaluate((el) =>
+      Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)),
+    );
     const { violations } = await new AxeBuilder({ page })
       .include('[data-preview]')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

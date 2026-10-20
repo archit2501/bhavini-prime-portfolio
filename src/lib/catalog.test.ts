@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertCatalog,
   castLine,
+  runtimeYears,
   certificationsForSkill,
   checkCatalog,
   episodesFor,
@@ -77,8 +78,28 @@ describe('the real catalog', () => {
     ]);
   });
 
-  it('credits only Bhavini', () => {
+  it('credits only Bhavini, with film credits where they differ from the role', () => {
     for (const t of catalog.titles) expect(castLine(t)).toMatch(/^Bhavini Malhotra as /);
+    expect(castLine(titleBySlug(catalog, 'christ-university')!)).toBe(
+      'Bhavini Malhotra as Student Representative, University Student Council',
+    );
+    expect(castLine(titleBySlug(catalog, 'f1jobs')!)).toBe(
+      'Bhavini Malhotra as Sales & Operations Executive',
+    );
+  });
+
+  it('links the two education films as prequel and sequel', () => {
+    expect(titleBySlug(catalog, 'christ-university')?.prequel).toBe('cambridge-innovative-school');
+    expect(titleBySlug(catalog, 'cambridge-innovative-school')?.sequel).toBe('christ-university');
+  });
+
+  it('gives runtimes in whole years', () => {
+    expect(runtimeYears(titleBySlug(catalog, 'christ-university')!)).toBe('3 years');
+    expect(runtimeYears(titleBySlug(catalog, 'f1jobs')!)).toBeUndefined();
+    expect(runtimeYears(titleBySlug(catalog, 'vastra-kala')!)).toBeUndefined();
+    expect(
+      runtimeYears({ ...titleBySlug(catalog, 'vastra-kala')!, start: '2024-01', end: '2024-12' }),
+    ).toBe('1 year');
   });
 
   it('lists the one figure she has not confirmed yet', () => {
@@ -135,6 +156,7 @@ describe('checkCatalog finds each kind of problem', () => {
 
   it('unknown figures, skills, titles and tracks', () => {
     const c = clone();
+    c.titles[4].prequel = 'nowhere';
     c.titles[0].figures.push('nope');
     c.titles[0].genres.push('juggling');
     c.certifications[0].skills.push('juggling');
@@ -143,6 +165,7 @@ describe('checkCatalog finds each kind of problem', () => {
     expect(checkCatalog(c)).toEqual([
       'title f1jobs: unknown skill "juggling"',
       'title f1jobs: unknown figure "nope"',
+      'title christ-university: unknown linked title "nowhere"',
       `certification ${c.certifications[0].slug}: unknown skill "juggling"`,
       'row hero: unknown title "ghost"',
       'guide entry 1 (F1Jobs.io): unknown track "space"',

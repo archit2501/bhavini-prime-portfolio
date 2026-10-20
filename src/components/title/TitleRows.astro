@@ -1,0 +1,82 @@
+---
+import type { Catalog, WithSlug } from '../../lib/catalog';
+import type { Title } from '../../lib/catalog-schema';
+import { artwork } from '../../lib/artwork-assets';
+import { titleCard } from '../../lib/cards';
+import { alsoViewed } from '../../lib/title-page';
+import { trailerFor } from '../../lib/trailers';
+import { withBase } from '../../lib/url';
+import LandscapeCard from '../rows/LandscapeCard.astro';
+import Row from '../rows/Row.astro';
+
+/**
+ * The rows that close a Prime Video detail page: "Customers also watched" (here "Recruiters also
+ * viewed") and "Trailers", each card captioned underneath ("Carrie - Season 1: Teaser").
+ */
+interface Props {
+  catalog: Catalog;
+  title: WithSlug<Title>;
+}
+
+const { catalog, title: t } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const trailer = trailerFor(t.slug, base);
+const others = alsoViewed(catalog, t.slug);
+---
+
+<div class="title-rows">
+  <Row id="also-viewed" title="Recruiters also viewed">
+    {others.map((o) => (
+      <li>
+        <LandscapeCard {...titleCard(o)} image={artwork(o.slug).card} />
+      </li>
+    ))}
+  </Row>
+  {trailer && (
+    <Row id="trailers" title="Trailers">
+      <li class="trailer">
+        <a class="trailer__card" href={withBase(`/watch/${t.slug}/`, base)}>
+          <img
+            src={trailer.poster}
+            alt=""
+            width="1280"
+            height="720"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="visually-hidden">{t.title}: Trailer</span>
+        </a>
+        <p class="trailer__caption" aria-hidden="true">
+          {t.title}: Trailer
+        </p>
+      </li>
+    </Row>
+  )}
+</div>
+
+<style>
+  .title-rows {
+    padding-bottom: var(--space-6);
+  }
+
+  .trailer__card {
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--color-chip);
+  }
+
+  .trailer__card :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .trailer__caption {
+    margin-top: var(--space-2);
+    font-size: var(--fs-16);
+    font-weight: 500;
+  }
+</style>

@@ -10,7 +10,7 @@ import type { Catalog, WithSlug } from '../../lib/catalog';
 import { castLine } from '../../lib/catalog';
 import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
-import { detailMeta } from '../../lib/title-page';
+import { detailMeta, seriesLinks } from '../../lib/title-page';
 import { trailerFor } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
 import Wordmark from '../brand/Wordmark.astro';
@@ -35,6 +35,7 @@ const art = artwork(t.slug);
 const trailer = trailerFor(t.slug, base);
 const meta = detailMeta(catalog, t, !!trailer, base);
 const [castLabel, castRole] = castLine(t).split(' as ');
+const links = seriesLinks(catalog, t, base);
 ---
 
 <section class="dh" aria-labelledby="title-name" data-detail-hero data-slug={t.slug}>
@@ -177,6 +178,11 @@ const [castLabel, castRole] = castLine(t).split(' as ');
           <li>{b}</li>
         ))}
       </ul>
+      {links.map((l) => (
+        <p class="dh__series">
+          <span class="dh__grey">{l.label}:</span> <a href={l.href}>{l.title}</a>
+        </p>
+      ))}
     </div>
   </div>
   <p class="visually-hidden" role="status" aria-live="polite" data-hero-status></p>
@@ -520,6 +526,17 @@ const [castLabel, castRole] = castLine(t).split(' as ');
     flex-wrap: wrap;
     gap: 0.25rem 0.375rem;
     font-weight: 700;
+  }
+
+  .dh__series {
+    margin-top: var(--space-4);
+    font-weight: 700;
+  }
+
+  .dh__series a {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 
   .dh__badges {

@@ -1,4 +1,4 @@
-import type { Catalog, WithSlug } from './catalog';
+import { runtimeYears, type Catalog, type WithSlug } from './catalog';
 import type { Title } from './catalog-schema';
 import { periodChip } from './carousel';
 import { withBase } from './url';
@@ -32,7 +32,11 @@ export function detailMeta(
   return {
     skills,
     trailing: [place, periodChip(t.start, t.end)],
-    badges: [t.kind === 'series' ? 'Series' : 'Film', ...(hasCaptions ? ['CC'] : [])],
+    badges: [
+      t.kind === 'series' ? 'Series' : 'Film',
+      ...(t.kind === 'film' && runtimeYears(t) ? [runtimeYears(t) as string] : []),
+      ...(hasCaptions ? ['CC'] : []),
+    ],
     cta: t.kind === 'series' ? ['Episode 1', 'Watch now'] : ['Watch now'],
   };
 }
@@ -71,4 +75,24 @@ export function titleFigures(catalog: Catalog, t: Title): { value: string; label
     const f = catalog.figures[id];
     return f ? [{ value: f.value, label: f.label }] : [];
   });
+}
+
+/** "Prequel: Cambridge Innovative School" / "Sequel: Christ University" links for films. */
+export function seriesLinks(
+  catalog: Catalog,
+  t: Title,
+  base?: string,
+): { label: string; title: string; href: string }[] {
+  const link = (label: string, slug?: string) => {
+    const other = slug ? catalog.titles.find((x) => x.slug === slug) : undefined;
+    return other
+      ? [{ label, title: other.title, href: withBase(`/title/${other.slug}/`, base) }]
+      : [];
+  };
+  return [...link('Prequel', t.prequel), ...link('Sequel', t.sequel)];
+}
+
+/** "Recruiters also viewed": every other title, in catalog order (the Related tab ranks by skill). */
+export function alsoViewed(catalog: Catalog, slug: string): WithSlug<Title>[] {
+  return catalog.titles.filter((t) => t.slug !== slug);
 }

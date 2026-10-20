@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Catalog } from './catalog';
-import { detailMeta, nextTab, tabFromHash, tabsFor, titleFigures } from './title-page';
+import {
+  alsoViewed,
+  detailMeta,
+  nextTab,
+  seriesLinks,
+  tabFromHash,
+  tabsFor,
+  titleFigures,
+} from './title-page';
 import { trailerFor, TRAILER_SLUGS } from './trailers';
 
 const catalog = {
@@ -57,7 +65,7 @@ describe('detailMeta', () => {
     };
     const meta = detailMeta(catalog, film, false, '/');
     expect(meta.cta).toEqual(['Watch now']);
-    expect(meta.badges).toEqual(['Film']);
+    expect(meta.badges).toEqual(['Film', '3 years']);
     expect(meta.trailing).toEqual(['Bengaluru', '2023–26']);
   });
 });
@@ -110,5 +118,35 @@ describe('titleFigures', () => {
     expect(titleFigures(c, { ...title, figures: ['regions', 'ghost'] })).toEqual([
       { value: '5+', label: 'global regions' },
     ]);
+  });
+});
+
+describe('film links and the also-viewed row', () => {
+  const titles = [
+    {
+      ...title,
+      slug: 'christ',
+      title: 'Christ University',
+      kind: 'film' as const,
+      prequel: 'school',
+    },
+    { ...title, slug: 'school', title: 'Cambridge', kind: 'film' as const, sequel: 'christ' },
+    { ...title, slug: 'f1', title: 'F1Jobs.io' },
+  ];
+  const c = { ...catalog, titles } as unknown as Catalog;
+
+  it('links prequels and sequels, ignoring missing ones', () => {
+    expect(seriesLinks(c, titles[0], '/')).toEqual([
+      { label: 'Prequel', title: 'Cambridge', href: '/title/school/' },
+    ]);
+    expect(seriesLinks(c, titles[1], '/')).toEqual([
+      { label: 'Sequel', title: 'Christ University', href: '/title/christ/' },
+    ]);
+    expect(seriesLinks(c, titles[2], '/')).toEqual([]);
+    expect(seriesLinks(c, { ...titles[2], prequel: 'ghost' }, '/')).toEqual([]);
+  });
+
+  it('lists every other title', () => {
+    expect(alsoViewed(c, 'school').map((t) => t.slug)).toEqual(['christ', 'f1']);
   });
 });
