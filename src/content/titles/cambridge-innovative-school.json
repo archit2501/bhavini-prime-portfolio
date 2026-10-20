@@ -12,5 +12,7 @@
   "status": "90.4% in high school",
   "synopsis": "Where it started. Bhavini finished high school at Cambridge Innovative School in Jalandhar with a score of 90.4%.",
   "genres": [],
-  "figures": ["highSchool"]
+  "figures": ["highSchool"],
+  "castAs": "Student",
+  "sequel": "christ-university"
 }

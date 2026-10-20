@@ -30,6 +30,7 @@ test('films get a one-line CTA; titles without a trailer get no trailer button',
   await expect(page.getByRole('link', { name: 'Watch now', exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Badges' }).getByRole('listitem')).toHaveText([
     'Film',
+    '3 years',
     'CC',
   ]);
   await page.goto('/title/clinical/');

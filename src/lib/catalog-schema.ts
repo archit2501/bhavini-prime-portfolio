@@ -45,6 +45,11 @@ export const titleSchema = z.object({
   season: z.number().int().positive().optional(),
   episodes: z.array(episodeSchema).optional(),
   credits: z.array(creditSchema).optional(),
+  /** The credit in "Cast: Bhavini Malhotra as …" when it differs from the role (films). */
+  castAs: text.optional(),
+  /** Films in a series: the earlier and later instalments, by slug. */
+  prequel: slug.optional(),
+  sequel: slug.optional(),
 });
 
 export const skillSchema = z.object({

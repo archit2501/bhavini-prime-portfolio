@@ -70,7 +70,20 @@ export function episodesFor(title: Title): NumberedEpisode[] {
 
 /** Prime's "Cast:" line. Only Bhavini is credited; no colleagues or clients are named. */
 export function castLine(title: Title): string {
-  return `Bhavini Malhotra as ${title.role}`;
+  return `Bhavini Malhotra as ${title.castAs ?? title.role}`;
+}
+
+/** Whole years between a title's start and end ("3 years" for 2023 to 2026); none under a year. */
+export function runtimeYears(title: Title): string | undefined {
+  if (!title.end) return undefined;
+  const a = parseMonth(title.start);
+  const b = parseMonth(title.end);
+  // "2023 to 2026" on a resume is a three-year degree, not 48 months from January to December.
+  const years =
+    a.month === undefined && b.month === undefined
+      ? b.year - a.year
+      : Math.floor((monthIndex(title.end, 'end') - monthIndex(title.start) + 1) / 12);
+  return years >= 1 ? `${years} year${years === 1 ? '' : 's'}` : undefined;
 }
 
 /** Other titles ranked by how many skills they share with this one, then catalog order. O(t·g). */
@@ -148,6 +161,9 @@ export function checkCatalog(catalog: Catalog): string[] {
     if (t.kind === 'film' && episodes > 0) errors.push(`${where}: a film can't have episodes`);
     for (const g of t.genres) {
       if (!skillSlugs.has(g)) errors.push(`${where}: unknown skill "${g}"`);
+    }
+    for (const link of [t.prequel, t.sequel]) {
+      if (link && !titleSlugs.has(link)) errors.push(`${where}: unknown linked title "${link}"`);
     }
     const text = titleText(t);
     for (const id of t.figures) {
