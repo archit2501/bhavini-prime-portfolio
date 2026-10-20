@@ -88,3 +88,14 @@ describe('brand guard', () => {
     ]);
   });
 });
+
+describe('disclaimer', () => {
+  // Decision Q2: every page a visitor can land on says it isn't Amazon's.
+  it.skipIf(!existsSync(join(ROOT, 'dist')))('is on every built page', () => {
+    const missing = files(join(ROOT, 'dist'))
+      .filter((path) => path.endsWith('.html'))
+      .filter((path) => !readFileSync(path, 'utf8').includes(DISCLAIMER))
+      .map((path) => relative(ROOT, path));
+    expect(missing).toEqual([]);
+  });
+});

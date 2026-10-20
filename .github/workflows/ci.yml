@@ -46,5 +46,5 @@ jobs:
       - run: npm ci
       - run: npm run build
       # Re-run the brand guard so the built pages in dist/ are scanned too.
-      - run: npx vitest run tests/brand-guard.test.ts
+      - run: npx vitest run tests/brand-guard.test.ts tests/js-budget.test.ts
       - run: npm run lighthouse

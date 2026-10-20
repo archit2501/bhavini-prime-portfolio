@@ -7,13 +7,15 @@
         "http://localhost/index.html",
         "http://localhost/browse/experience/index.html",
         "http://localhost/title/f1jobs/index.html",
+        "http://localhost/watch/f1jobs/index.html",
+        "http://localhost/career-guide/index.html",
         "http://localhost/404.html"
       ]
     },
     "assert": {
       "assertMatrix": [
         {
-          "matchingUrlPattern": "^(?!.*/404\\.html$).*",
+          "matchingUrlPattern": "^(?!.*/(404\\.html|watch/.*)$).*",
           "assertions": {
             "largest-contentful-paint": [
               "error",
@@ -54,7 +56,7 @@
           }
         },
         {
-          "matchingUrlPattern": ".*/404\\.html$",
+          "matchingUrlPattern": ".*/(404\\.html|watch/.*)$",
           "assertions": {
             "largest-contentful-paint": [
               "error",

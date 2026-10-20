@@ -126,6 +126,10 @@ const what = contact === 'email' ? 'email address' : 'phone number';
   }
 
   .channel__detail :global(a) {
+    /* On its own line, so it gets a full 24px target (WCAG 2.5.8). */
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
     color: var(--color-text);
     text-decoration: underline;
     text-underline-offset: 0.15em;

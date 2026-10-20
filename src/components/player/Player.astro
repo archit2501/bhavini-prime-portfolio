@@ -12,7 +12,8 @@ import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
 import type { SceneSheet } from '../../lib/cues';
 import { NEXT_UP_SECONDS, formatClock, remainingClock, spokenPosition } from '../../lib/player';
-import { TRAILER_CUES, type TrailerFiles } from '../../lib/trailers';
+import { SITE } from '../../lib/site';
+import { TRAILER_CUES, videoSources, type TrailerFiles } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
 import BehindTheScenes from './BehindTheScenes.astro';
 
@@ -51,13 +52,12 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
     class="player__video"
     muted
     playsinline
-    preload="auto"
+    preload="none"
     poster={trailer.poster}
     aria-label={`${t.title} trailer`}
     data-video
+    data-sources={JSON.stringify(videoSources(trailer))}
   >
-    <source src={trailer.webm} type="video/webm" />
-    <source src={trailer.mp4} type="video/mp4" />
     <track kind="captions" src={trailer.captions} srclang="en" label="English" />
     <track kind="metadata" src={trailer.metadata} label="Behind the scenes" />
   </video>
@@ -138,14 +138,18 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
         aria-valuetext={spokenPosition(0, length)}
         data-scrub
       />
-      <p class="player__time">
-        <span class="player__elapsed" data-elapsed>
-          {formatClock(0)}
-        </span>
-        <span aria-hidden="true">/</span>
-        <span class="visually-hidden">remaining</span>
-        <span data-remaining>{remainingClock(0, length)}</span>
-      </p>
+      <div class="player__foot">
+        <p class="player__time">
+          <span class="player__elapsed" data-elapsed>
+            {formatClock(0)}
+          </span>
+          <span aria-hidden="true">/</span>
+          <span class="visually-hidden">remaining</span>
+          <span data-remaining>{remainingClock(0, length)}</span>
+        </p>
+        {/* The player has no footer, so it carries the disclaimer itself (decision Q2). */}
+        <p class="player__disclaimer">{SITE.disclaimer}</p>
+      </div>
     </div>
   </div>
 
@@ -509,10 +513,23 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
     transform: scale(1);
   }
 
+  .player__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-4);
+    margin-top: var(--space-1);
+  }
+
+  .player__disclaimer {
+    color: var(--color-footer-text);
+    font-size: var(--fs-13);
+  }
+
   .player__time {
     display: flex;
     gap: 0.3em;
-    margin-top: var(--space-1);
     color: var(--color-text-muted);
     font-size: var(--fs-14);
     font-variant-numeric: tabular-nums;

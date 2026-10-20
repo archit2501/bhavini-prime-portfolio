@@ -5,8 +5,11 @@ import TitleRows from '../../components/title/TitleRows.astro';
 import TitleTabs from '../../components/title/TitleTabs.astro';
 import PreviewCard from '../../components/rows/PreviewCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getImage } from 'astro:assets';
+import { artwork } from '../../lib/artwork-assets';
 import { titleBySlug } from '../../lib/catalog';
 import { loadCatalog } from '../../lib/content';
+import { creativeWorkJsonLd } from '../../lib/seo';
 
 export const getStaticPaths = (async () => {
   const catalog = await loadCatalog();
@@ -16,9 +19,27 @@ export const getStaticPaths = (async () => {
 const catalog = await loadCatalog();
 const title = titleBySlug(catalog, Astro.params.slug);
 if (!title) throw new Error(`No title "${Astro.params.slug}"`);
+// Its own share card: the card art, lettering included, cropped to 1200x630.
+const og = await getImage({
+  src: artwork(title.slug).card,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+  quality: 82,
+});
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = new URL(og.src, Astro.site).href;
+const homeUrl = new URL(import.meta.env.BASE_URL, Astro.site).href;
 ---
 
-<BaseLayout title={title.title} description={title.synopsis}>
+<BaseLayout
+  title={title.title}
+  description={title.synopsis}
+  image={og.src}
+  imageAlt={`${title.title}: ${title.status}`}
+  jsonLd={creativeWorkJsonLd(title, pageUrl, imageUrl, homeUrl)}
+>
   <TitleHero catalog={catalog} title={title} />
   <TitleTabs catalog={catalog} title={title} />
   <TitleRows catalog={catalog} title={title} />
