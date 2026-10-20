@@ -284,6 +284,11 @@ test('the trailer never loads before the page has', async ({ page }) => {
   });
   await page.goto('/watch/f1jobs/');
   await expect(page.locator('video')).toHaveAttribute('preload', /none|metadata/);
+  // The detail page's trailer has no sources at all until someone asks for it.
+  await page.goto('/title/f1jobs/');
+  await expect(page.locator('[data-detail-hero] video source')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Watch trailer' }).click();
+  await expect(page.locator('[data-detail-hero] video source')).toHaveCount(2);
   await expect.poll(() => order.includes('video')).toBe(true);
   expect(order.indexOf('load')).toBeLessThan(order.indexOf('video'));
 });

@@ -9,7 +9,7 @@ import {
   tabsFor,
   titleFigures,
 } from './title-page';
-import { trailerFor, TRAILER_SLUGS } from './trailers';
+import { trailerFor, TRAILER_SLUGS, videoSources } from './trailers';
 
 const catalog = {
   skills: [
@@ -101,6 +101,15 @@ describe('trailerFor', () => {
     });
     expect(trailerFor('cambridge-innovative-school')).toBeUndefined();
     expect(trailerFor('f1jobs')?.mp4).toBe('/trailers/f1jobs.mp4');
+  });
+});
+describe('videoSources', () => {
+  it('offers WebM first, then MP4', () => {
+    const files = trailerFor('vastra-kala', '/b/');
+    expect(files && videoSources(files)).toEqual([
+      { src: '/b/trailers/vastra-kala.webm', type: 'video/webm' },
+      { src: '/b/trailers/vastra-kala.mp4', type: 'video/mp4' },
+    ]);
   });
 });
 
