@@ -1,0 +1,453 @@
+---
+import Play from '@lucide/astro/icons/play';
+import Plus from '@lucide/astro/icons/plus';
+import type { Catalog } from '../../lib/catalog';
+import { previewData } from '../../lib/preview';
+import { jsonLdScript } from '../../lib/site';
+
+/**
+ * Prime Video's expanded hover card, measured on primevideo.com: after a 100 ms hover the card's
+ * art scales 1.56x (transform .3s cubic-bezier(.2,.45,0,1)) and a black panel opens below it
+ * (radius 0 0 8 8, padding 10px 20px 20px) with the title, entitlement, a white Play button and a
+ * round +, chips and a three-line synopsis.
+ *
+ * One shared overlay serves every card on the page. Unlike Prime's, it also opens on keyboard
+ * focus and on tap, stays open while the pointer is on it, and closes with Esc (WCAG 1.4.13).
+ */
+interface Props {
+  catalog: Catalog;
+}
+
+const { catalog } = Astro.props;
+const data = previewData(catalog, import.meta.env.BASE_URL);
+// Server-rendered with the first entry so the hidden markup is complete before any script runs.
+const first = Object.values(data)[0];
+---
+
+<div class="preview" data-preview hidden>
+  <!-- The expanded art opens the title, so a second tap lands somewhere; the card already
+       offers the same link to the keyboard, so this copy stays out of the tab order. -->
+  <a
+    class="preview__art"
+    href={first.detailsHref}
+    tabindex="-1"
+    aria-hidden="true"
+    data-preview-art
+  >
+    <span class="preview__media" data-preview-media></span>
+    <span class="visually-hidden" data-field="title">
+      {first.title}
+    </span>
+  </a>
+  <div class="preview__panel" role="group" aria-labelledby="preview-title" data-preview-panel>
+    <h3 class="preview__title" id="preview-title" data-field="title">
+      {first.title}
+    </h3>
+    <p class="preview__status" data-field="status">
+      {first.status}
+    </p>
+    <p class="preview__entitle">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="8" fill="#0070f0"></circle>
+        <path
+          d="M4.5 8.2l2.3 2.3 4.7-4.7"
+          fill="none"
+          stroke="#fff"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+      Open to roles
+    </p>
+    <div class="preview__actions">
+      <a class="preview__cta" href={first.ctaHref} data-preview-cta>
+        <Play size={22} fill="currentColor" aria-hidden="true" />
+        <span data-field="ctaLabel">{first.ctaLabel}</span>
+      </a>
+      <button
+        class="preview__round"
+        type="button"
+        aria-pressed="false"
+        data-preview-list
+        data-my-list=""
+      >
+        <Plus size={26} aria-hidden="true" />
+        <span class="visually-hidden" data-preview-list-label>
+          Add to My List
+        </span>
+      </button>
+    </div>
+    <p class="preview__meta">
+      <span class="preview__ribbon" data-field="ribbon">
+        {first.ribbon}
+      </span>
+      <span class="preview__chip" data-field="chip">
+        {first.chip}
+      </span>
+      <span class="preview__kind" data-field="meta">
+        {first.meta}
+      </span>
+    </p>
+    <p class="preview__synopsis" data-field="synopsis">
+      {first.synopsis}
+    </p>
+  </div>
+</div>
+<script type="application/json" id="preview-data" set:html={jsonLdScript(data)} />
+<script>
+  import { previewGeometry, previewScale } from '../../lib/position';
+  import type { PreviewData } from '../../lib/preview';
+
+  const root = document.querySelector<HTMLElement>('[data-preview]');
+  const dataEl = document.getElementById('preview-data');
+  if (root && dataEl) {
+    const data: Record<string, PreviewData> = JSON.parse(dataEl.textContent ?? '{}');
+    const art = root.querySelector<HTMLAnchorElement>('[data-preview-art]')!;
+    const media = root.querySelector<HTMLElement>('[data-preview-media]')!;
+    const cta = root.querySelector<HTMLAnchorElement>('[data-preview-cta]')!;
+    const list = root.querySelector<HTMLButtonElement>('[data-preview-list]')!;
+    const listLabel = root.querySelector<HTMLElement>('[data-preview-list-label]')!;
+    const fields = root.querySelectorAll<HTMLElement>('[data-field]');
+    const navH = () => document.querySelector('header.nav')?.getBoundingClientRect().height ?? 0;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const HOVER_DELAY = 100;
+    const CLOSE_GRACE = 140;
+
+    let active: HTMLElement | null = null;
+    let openTimer = 0;
+    let closeTimer = 0;
+
+    const focusables = (el: ParentNode) =>
+      [
+        ...el.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]'),
+      ].filter(
+        (e) => e.tabIndex >= 0 && !e.closest('[hidden], [inert]') && e.offsetParent !== null,
+      );
+
+    function open(card: HTMLElement) {
+      const slug = card.dataset.card ?? '';
+      const d = data[slug];
+      if (!d) return;
+      clearTimeout(closeTimer);
+      active?.removeAttribute('aria-describedby');
+      active = card;
+      card.setAttribute('aria-describedby', 'preview-title');
+
+      fields.forEach((f) => {
+        const value = d[f.dataset.field as keyof PreviewData];
+        f.textContent = typeof value === 'string' ? value : '';
+        f.hidden = !value;
+      });
+      cta.href = d.ctaHref;
+      art.href = d.detailsHref;
+      list.hidden = !d.listable;
+      list.dataset.myList = slug;
+      listLabel.textContent = `Add ${d.title} to My List`;
+
+      const rect = card.getBoundingClientRect();
+      const scale = reduced.matches ? 1 : previewScale(window.innerWidth);
+      const g = previewGeometry(
+        { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
+        { width: document.documentElement.clientWidth, top: navH(), margin: 16 },
+        scale,
+      );
+      // Reuse the card's own <picture>, asking its sources for the expanded width.
+      const picture = card.querySelector('picture')?.cloneNode(true) as HTMLElement | undefined;
+      picture
+        ?.querySelectorAll('source, img')
+        .forEach((el) => el.setAttribute('sizes', `${Math.ceil(g.width)}px`));
+      picture?.querySelector('img')?.setAttribute('loading', 'eager');
+      media.replaceChildren(...(picture ? [picture] : []));
+      root!.style.left = `${g.left + window.scrollX}px`;
+      root!.style.top = `${g.top + window.scrollY}px`;
+      root!.style.width = `${g.width}px`;
+      art.style.height = `${g.artHeight}px`;
+      root!.style.transformOrigin = `${g.originX}px ${g.originY}px`;
+      root!.style.setProperty('--from-scale', String(1 / scale));
+      root!.hidden = false;
+      root!.dataset.state = 'opening';
+      // Two frames: paint the card-sized start state, then let the transition grow it.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => root && (root.dataset.state = 'open')),
+      );
+    }
+
+    function close(returnFocus = false) {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+      if (!active) return;
+      const card = active;
+      card.removeAttribute('aria-describedby');
+      active = null;
+      root!.hidden = true;
+      root!.dataset.state = 'closed';
+      if (returnFocus) card.focus();
+    }
+
+    const scheduleOpen = (card: HTMLElement, delay: number) => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+      openTimer = window.setTimeout(() => open(card), delay);
+    };
+    const scheduleClose = () => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(() => close(), CLOSE_GRACE);
+    };
+    const cardOf = (t: EventTarget | null) =>
+      t instanceof Element ? t.closest<HTMLElement>('[data-card]') : null;
+
+    // Mouse: Prime's hover intent, and the pointer may travel onto the open card (1.4.13).
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const card = cardOf(e.target);
+      if (card && card !== active) scheduleOpen(card, HOVER_DELAY);
+      else if (card === active || root!.contains(e.target as Node)) clearTimeout(closeTimer);
+    });
+    document.addEventListener('pointerout', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const to = e.relatedTarget as Node | null;
+      const leaving = cardOf(e.target) || root!.contains(e.target as Node);
+      if (!leaving) return;
+      if (to && (root!.contains(to) || (active && active.contains(to)))) return;
+      if (cardOf(to) && cardOf(to) !== active) return; // pointerover opens the next one
+      if (active || openTimer) scheduleClose();
+    });
+
+    // Keyboard: focus opens it; Tab moves through it before the next card; Esc closes it.
+    document.addEventListener('focusin', (e) => {
+      const card = cardOf(e.target);
+      if (card && card.matches(':focus-visible') && card !== active)
+        scheduleOpen(card, HOVER_DELAY);
+      else if (!card && !root!.contains(e.target as Node) && active) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!active) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close(true);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const inPanel = focusables(root!);
+      const target = e.target as HTMLElement;
+      if (target === active && !e.shiftKey && inPanel.length) {
+        e.preventDefault();
+        inPanel[0].focus();
+      } else if (root!.contains(target)) {
+        const i = inPanel.indexOf(target);
+        if (e.shiftKey && i === 0) {
+          e.preventDefault();
+          active.focus();
+        } else if (!e.shiftKey && i === inPanel.length - 1) {
+          e.preventDefault();
+          const order = focusables(document).filter((el) => !root!.contains(el));
+          const next = order[order.indexOf(active) + 1];
+          close();
+          next?.focus();
+        }
+      }
+    });
+
+    // Touch: the first tap previews, a second tap on the same card follows its link.
+    let lastPointer = 'mouse';
+    document.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType), {
+      capture: true,
+    });
+    // Some WebKit builds deliver taps as touch events without pointer events.
+    document.addEventListener('touchstart', () => (lastPointer = 'touch'), {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener('click', (e) => {
+      const card = cardOf(e.target);
+      if (card && lastPointer !== 'mouse' && card !== active) {
+        e.preventDefault();
+        open(card);
+        return;
+      }
+      if (active && !card && !root!.contains(e.target as Node)) close();
+    });
+
+    // The overlay is placed in page coordinates, so it only needs closing when layout moves.
+    window.addEventListener('resize', () => close());
+    document.addEventListener(
+      'scroll',
+      (e) => {
+        if (active && e.target instanceof Element && e.target.contains(active)) close();
+      },
+      { capture: true, passive: true },
+    );
+  }
+</script>
+
+<style>
+  .preview {
+    position: absolute;
+    z-index: var(--z-card-active);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius-8);
+    transform: scale(var(--from-scale, 1));
+    transition: transform var(--dur-base) var(--ease-standard);
+  }
+
+  .preview[data-state='open'] {
+    transform: none;
+  }
+
+  .preview__art {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    background: var(--color-chip);
+  }
+
+  .preview__media,
+  .preview__art :global(picture),
+  .preview__art :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .preview__art :global(img) {
+    object-fit: cover;
+  }
+
+  /* Prime's panel: black, padding 10px 20px 20px, radius 0 0 8 8. */
+  .preview__panel {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0.625rem 1.25rem 1.25rem;
+    border-radius: 0 0 var(--radius-8) var(--radius-8);
+    background: var(--color-panel);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard) var(--dur-instant);
+  }
+
+  .preview[data-state='open'] .preview__panel {
+    opacity: 1;
+  }
+
+  .preview__title {
+    font-size: var(--fs-24);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .preview__status {
+    color: var(--color-mint);
+    font-size: var(--fs-14);
+    font-weight: 700;
+  }
+
+  .preview__entitle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-14);
+    line-height: 1.3;
+  }
+
+  .preview__entitle svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .preview__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block: var(--space-1);
+  }
+
+  /* Full-width white Play: 54px, radius 8, 18px/500. */
+  .preview__cta {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 3.375rem;
+    padding: 0.3125rem 0.9375rem;
+    border-radius: var(--radius-8);
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+    font-size: var(--fs-18);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .preview__round {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 3.125rem;
+    height: 3.125rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-btn);
+    color: var(--color-text);
+  }
+
+  .preview__round[hidden] {
+    display: none;
+  }
+
+  .preview__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-14);
+    font-weight: 700;
+  }
+
+  .preview__ribbon {
+    padding: 3px 5px;
+    border-radius: var(--radius-chip);
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+    font-size: var(--fs-11);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .preview__chip {
+    padding: 3px 5px;
+    border-radius: var(--radius-chip);
+    background: var(--color-chip);
+    line-height: 1;
+  }
+
+  .preview__kind {
+    color: var(--color-text-meta);
+  }
+
+  .preview__ribbon[hidden],
+  .preview__status[hidden] {
+    display: none;
+  }
+
+  /* 16px/19px weight 500, #F1F1F1, three lines. */
+  .preview__synopsis {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--color-text-synopsis);
+    font-size: var(--fs-16);
+    font-weight: 500;
+    line-height: 1.1875;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .preview,
+    .preview__panel {
+      transition: none;
+    }
+  }
+</style>
