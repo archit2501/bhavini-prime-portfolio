@@ -48,7 +48,9 @@ function loadContent(): Catalog {
     ),
     certifications: keyed(json('certifications.json'), (v) => certificationSchema.parse(v)),
     guide: guideSchema.parse(json('timeline.json').guide),
-    rows: (json('rows.json') as { id: string }[]).map((r) => ({ ...rowSchema.parse(r), id: r.id })),
+    rows: (json('rows.json') as { id: string }[])
+      .map((r) => ({ ...rowSchema.parse(r), id: r.id }))
+      .sort((a, b) => a.order - b.order),
   };
 }
 
@@ -89,6 +91,28 @@ describe('the real catalog', () => {
     ]);
     expect(rowTitles(catalog, 'top10')).toEqual([]);
     expect(rowTitles(catalog, 'nope')).toEqual([]);
+    // checkCatalog flags unknown slugs; rowTitles just skips them.
+    const c = clone();
+    c.rows[0] = {
+      id: 'hero',
+      kind: 'hero',
+      order: 1,
+      title: 'Featured',
+      items: ['ghost', 'clinical'],
+    };
+    expect(rowTitles(c, 'hero').map((t) => t.slug)).toEqual(['clinical']);
+  });
+
+  it('keeps the home rows in page order', () => {
+    expect(catalog.rows.map((r) => r.id)).toEqual([
+      'hero',
+      'continue',
+      'top10',
+      'experience',
+      'education',
+      'certifications',
+      'skills',
+    ]);
   });
 
   it('every title appears in a home row', () => {
@@ -111,7 +135,7 @@ describe('checkCatalog finds each kind of problem', () => {
     c.titles[0].figures.push('nope');
     c.titles[0].genres.push('juggling');
     c.certifications[0].skills.push('juggling');
-    c.rows[0] = { id: 'hero', kind: 'hero', title: 'Featured', items: ['ghost'] };
+    c.rows[0] = { id: 'hero', kind: 'hero', order: 1, title: 'Featured', items: ['ghost'] };
     c.guide.entries[0] = { ...c.guide.entries[0], track: 'space', title: 'ghost' };
     expect(checkCatalog(c)).toEqual([
       'title f1jobs: unknown skill "juggling"',
@@ -127,11 +151,13 @@ describe('checkCatalog finds each kind of problem', () => {
     const c = clone();
     c.titles[1].order = 1;
     c.skills[1].order = 1;
+    c.rows[1].order = 1;
     c.titles[2].end = '2023-01';
     c.guide.entries[1] = { ...c.guide.entries[1], start: '2026', end: '2025-01' };
     expect(checkCatalog(c)).toEqual([
       'titles: order 1 is used twice',
       'skills: order 1 is used twice',
+      'rows: order 1 is used twice',
       'title clinical: starts (2024-04) after it ends (2023-01)',
       'guide entry 2 (Vastra Kala): starts (2026) after it ends (2025-01)',
     ]);

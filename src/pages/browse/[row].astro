@@ -1,0 +1,66 @@
+---
+import type { GetStaticPaths } from 'astro';
+import LandscapeCard from '../../components/rows/LandscapeCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { artwork } from '../../lib/artwork-assets';
+import { titleCard } from '../../lib/cards';
+import { rowTitles } from '../../lib/catalog';
+import { loadCatalog } from '../../lib/content';
+
+/** Prime's "See more" collection page: the row's titles as a grid. "all" lists every title. */
+export const getStaticPaths = (async () => {
+  const catalog = await loadCatalog();
+  const rows = catalog.rows
+    .filter((r) => r.kind === 'titles')
+    .map((r) => ({
+      params: { row: r.id },
+      props: { heading: r.title, slugs: rowTitles(catalog, r.id).map((t) => t.slug) },
+    }));
+  return [
+    ...rows,
+    {
+      params: { row: 'all' },
+      props: { heading: 'All titles', slugs: catalog.titles.map((t) => t.slug) },
+    },
+  ];
+}) satisfies GetStaticPaths;
+
+const { heading, slugs } = Astro.props;
+const catalog = await loadCatalog();
+const titles = slugs.flatMap((slug) => catalog.titles.find((t) => t.slug === slug) ?? []);
+---
+
+<BaseLayout title={heading} description={`${heading}: ${titles.map((t) => t.title).join(', ')}.`}>
+  <section class="browse gutter">
+    <h1 class="browse__title">{heading}</h1>
+    <ul class="browse__grid">
+      {titles.map((t, i) => (
+        <li>
+          <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} eager={i < 4} />
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .browse {
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
+  }
+
+  .browse__title {
+    margin-bottom: var(--space-6);
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .browse__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.6875rem), 1fr));
+    gap: var(--space-6) 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

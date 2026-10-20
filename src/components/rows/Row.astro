@@ -1,0 +1,232 @@
+---
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import ChevronRight from '@lucide/astro/icons/chevron-right';
+
+/**
+ * A Prime Video row: a 20px/700 title with an inline "See more ›", then a horizontal track.
+ * The track is native scroll with snap points; the edge chevrons page it, so nothing needs a
+ * drag (WCAG 2.5.7). Off-screen rows skip rendering work until scrolled near
+ * (content-visibility).
+ */
+interface Props {
+  id: string;
+  title: string;
+  /** "See more" destination, when the row has its own page. */
+  seeMore?: string;
+}
+
+const { id, title, seeMore } = Astro.props;
+const headingId = `row-${id}`;
+---
+
+<section class="row" aria-labelledby={headingId} data-row={id}>
+  <div class="row__head gutter">
+    <h2 class="row__title" id={headingId}>
+      {title}
+    </h2>
+    {seeMore && (
+      <a class="row__more" href={seeMore}>
+        See more<span class="visually-hidden"> {title}</span>
+        <ChevronRight size={20} aria-hidden="true" />
+      </a>
+    )}
+  </div>
+  <div class="row__viewport">
+    <ul class="row__track" data-track>
+      <slot />
+    </ul>
+    <button
+      class="row__page row__page--prev"
+      type="button"
+      aria-label={`Scroll ${title} back`}
+      data-page="-1"
+      hidden
+    >
+      <ChevronLeft size={36} aria-hidden="true" />
+    </button>
+    <button
+      class="row__page row__page--next"
+      type="button"
+      aria-label={`Scroll ${title} forward`}
+      data-page="1"
+      hidden
+    >
+      <ChevronRight size={36} aria-hidden="true" />
+    </button>
+  </div>
+</section>
+
+<script>
+  import { atEnd, atStart, pageTarget } from '../../lib/rows';
+
+  for (const row of document.querySelectorAll<HTMLElement>('[data-row]')) {
+    const track = row.querySelector<HTMLElement>('[data-track]');
+    const buttons = row.querySelectorAll<HTMLButtonElement>('[data-page]');
+    if (!track) continue;
+
+    const update = () => {
+      buttons.forEach((b) => {
+        const back = b.dataset.page === '-1';
+        b.hidden = back ? atStart(track) : atEnd(track);
+      });
+    };
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const card = track.querySelector<HTMLElement>(':scope > li');
+        const dir = b.dataset.page === '-1' ? -1 : 1;
+        const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        track.scrollTo({
+          left: pageTarget(track, dir, card?.offsetWidth ?? 0),
+          behavior: smooth ? 'smooth' : 'auto',
+        });
+      }),
+    );
+    track.addEventListener('scroll', update, { passive: true });
+    new ResizeObserver(update).observe(track);
+    update();
+  }
+</script>
+
+<style>
+  .row {
+    position: relative;
+    margin-bottom: var(--space-8);
+    content-visibility: auto;
+    contain-intrinsic-size: auto 15rem;
+  }
+
+  .row__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 2.25rem;
+    /* 7px + the track's 4px top padding = Prime's 11px from heading to cards. */
+    margin-bottom: 0.4375rem;
+  }
+
+  .row__title {
+    font-size: var(--fs-row-title);
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .row__more {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    border-radius: var(--radius-8);
+    color: var(--color-text);
+    font-size: var(--fs-row-title);
+    font-weight: 400;
+    text-decoration: none;
+    transition: color var(--dur-fast) ease-in-out;
+  }
+
+  .row__more:hover {
+    color: var(--color-text-subtle);
+  }
+
+  .row__viewport {
+    position: relative;
+  }
+
+  /*
+   * Cards per row by breakpoint, so the next card always peeks. 100% is the content box
+   * (width minus both gutters); adding one gutter back gives the visible width, less one gap per
+   * whole card. At 1440: (1296 + 72 - 5 x 10) / 5.25 = 251px, Prime's card.
+   */
+  .row__track {
+    --cards: 1.6;
+    --gaps: 1;
+    --gap: 0.625rem;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% + var(--gutter) - var(--gap) * var(--gaps)) / var(--cards));
+    gap: var(--gap);
+    margin: 0;
+    padding: var(--space-1) var(--gutter) var(--space-2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+    list-style: none;
+  }
+
+  .row__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .row__track > :global(li) {
+    scroll-snap-align: start;
+  }
+
+  @media (min-width: 28em) {
+    .row__track {
+      --cards: 1.8;
+    }
+  }
+
+  @media (min-width: 37.5em) {
+    .row__track {
+      --cards: 2.2;
+      --gaps: 2;
+    }
+  }
+
+  @media (min-width: 55em) {
+    .row__track {
+      --cards: 4.2;
+      --gaps: 4;
+    }
+  }
+
+  @media (min-width: 87.5em) {
+    .row__track {
+      --cards: 5.25;
+      --gaps: 5;
+    }
+  }
+
+  @media (min-width: 112.5em) {
+    .row__track {
+      --cards: 6.2;
+      --gaps: 6;
+    }
+  }
+
+  .row__page {
+    position: absolute;
+    top: var(--space-1);
+    bottom: var(--space-2);
+    z-index: var(--z-row);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max(2.5rem, calc(var(--gutter) - var(--space-2)));
+    border: 0;
+    background: linear-gradient(90deg, rgb(0 5 13 / 70%), transparent);
+    color: var(--color-text);
+    opacity: 0;
+    transition: opacity var(--dur-fast) ease-in-out;
+  }
+
+  .row__page--prev {
+    left: 0;
+  }
+
+  .row__page--next {
+    right: 0;
+    background: linear-gradient(270deg, rgb(0 5 13 / 70%), transparent);
+  }
+
+  .row__page[hidden] {
+    display: none;
+  }
+
+  .row:hover .row__page,
+  .row:focus-within .row__page {
+    opacity: 1;
+  }
+</style>

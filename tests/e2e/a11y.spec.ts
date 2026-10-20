@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 // WCAG 2.2 AA (decision Q9). Each new screen adds its route here.
-const PAGES = ['/', '/no-such-title/'];
+const PAGES = ['/', '/browse/experience/', '/no-such-title/'];
 
 for (const path of PAGES) {
   test(`${path} has no serious accessibility issues`, async ({ page }) => {

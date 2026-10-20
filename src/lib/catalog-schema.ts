@@ -75,14 +75,17 @@ export const guideSchema = z.object({
   ),
 });
 
+/** Astro's file loader sorts entries by id, so rows carry their position on the page. */
+const order = z.number().int().positive();
+
 export const rowSchema = z.discriminatedUnion('kind', [
   /** The super-carousel at the top of the home page. */
-  z.object({ kind: z.literal('hero'), title: text, items: z.array(slug).min(1) }),
-  z.object({ kind: z.literal('continue'), title: text, items: z.array(slug).min(1) }),
-  z.object({ kind: z.literal('top10'), title: text, figures: z.array(text) }),
-  z.object({ kind: z.literal('titles'), title: text, items: z.array(slug).min(1) }),
-  z.object({ kind: z.literal('certifications'), title: text }),
-  z.object({ kind: z.literal('skills'), title: text }),
+  z.object({ kind: z.literal('hero'), order, title: text, items: z.array(slug).min(1) }),
+  z.object({ kind: z.literal('continue'), order, title: text, items: z.array(slug).min(1) }),
+  z.object({ kind: z.literal('top10'), order, title: text, figures: z.array(text) }),
+  z.object({ kind: z.literal('titles'), order, title: text, items: z.array(slug).min(1) }),
+  z.object({ kind: z.literal('certifications'), order, title: text }),
+  z.object({ kind: z.literal('skills'), order, title: text }),
 ]);
 
 export type Figure = z.infer<typeof figureSchema>;
