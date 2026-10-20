@@ -1,6 +1,7 @@
 ---
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import Footer from '../components/Footer.astro';
+import Ident from '../components/intro/Ident.astro';
 import TopNav from '../components/nav/TopNav.astro';
 import { jsonLdScript, pageTitle, personJsonLd, SITE } from '../lib/site';
 import { withBase } from '../lib/url';
@@ -72,9 +73,11 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
     </main>
     {footer && <Footer />}
     <p class="visually-hidden" role="status" aria-live="polite" data-my-list-status></p>
+    <Ident />
     <script>
       import '../scripts/view-transitions';
       import '../scripts/my-list';
+      import '../scripts/ident';
     </script>
   </body>
 </html>
