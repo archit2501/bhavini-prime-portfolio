@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 const player = (page: Page) => page.locator('[data-player]');
@@ -174,4 +175,96 @@ test("the school prequel's Watch now plays its sequel", async ({ page, request }
   await expect(cta).toHaveAttribute('href', '/watch/christ-university/');
   await expect(cta).toHaveText(/Watch the sequel\s*Christ University/);
   expect((await request.get('/watch/cambridge-innovative-school/')).status()).toBe(404);
+});
+
+test.describe('Behind the scenes', () => {
+  test('each trailer has a metadata track written from the catalog', async ({ request }) => {
+    const res = await request.get('/trailers/f1jobs.meta.vtt');
+    expect(res.headers()['content-type']).toContain('text/vtt');
+    const vtt = await res.text();
+    expect(vtt.startsWith('WEBVTT')).toBe(true);
+    const payloads = vtt.split('\n').filter((line) => line.startsWith('['));
+    expect(payloads).toHaveLength(4);
+    expect(JSON.parse(payloads[1])[0]).toMatchObject({
+      kind: 'fact',
+      title: '$100K+ in revenue',
+      detail: 'from 7+ successful sales',
+    });
+  });
+
+  test('the quick view follows the scene', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/watch/f1jobs/');
+    test.skip(!(await mediaReady(page)), 'this browser cannot load the trailer');
+    const quick = page.getByRole('region', { name: 'Behind the scenes' });
+    await expect(quick.getByRole('listitem')).toHaveCount(0);
+    await page.evaluate(() => {
+      const v = document.querySelector('video');
+      if (v) v.currentTime = 3.5;
+    });
+    await expect(quick.getByRole('listitem').first()).toContainText(
+      'Bhavini MalhotraSales & Operations Executive',
+    );
+    await page.evaluate(() => {
+      const v = document.querySelector('video');
+      if (v) v.currentTime = 6;
+    });
+    await expect(quick.getByRole('listitem').first()).toContainText('$100K+ in revenue');
+    await expect(quick.locator('img').first()).toHaveJSProperty('complete', true);
+  });
+
+  test('the quick view fades with the chrome and comes back on pause', async ({ page }) => {
+    await page.clock.install();
+    await page.goto('/watch/f1jobs/');
+    test.skip(!(await mediaReady(page)), 'this browser cannot load the trailer');
+    const quick = page.locator('[data-bts]');
+    await page.evaluate(() => {
+      const v = document.querySelector('video');
+      if (v) v.currentTime = 5.2;
+    });
+    await expect(quick.getByRole('listitem').first()).toContainText('$100K+');
+    await expect(quick).toHaveAttribute('data-visible', 'true');
+    await page.clock.runFor(4500);
+    await expect(player(page)).toHaveAttribute('data-chrome', 'hidden');
+    await expect(quick).toHaveAttribute('data-visible', 'false');
+    await page.keyboard.press('k');
+    await expect(player(page)).toHaveAttribute('data-state', 'paused');
+    await expect(quick).toHaveAttribute('data-visible', 'true');
+  });
+
+  test('View all opens every tab; Esc closes the panel, not the player', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/watch/christ-university/');
+    const open = page.getByRole('button', { name: 'View all' });
+    await open.click();
+    const panel = page.getByRole('dialog', { name: 'Behind the scenes' });
+    await expect(panel).toBeVisible();
+    const tabs = panel.getByRole('tab');
+    await expect(tabs).toHaveText(['In scene', 'Skills', 'Facts', 'Trivia']);
+    await expect(panel.getByRole('tabpanel')).toContainText('Bhavini Malhotra');
+    await tabs.first().focus();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await expect(tabs.nth(2)).toBeFocused();
+    await expect(tabs.nth(2)).toHaveAttribute('aria-selected', 'true');
+    await expect(panel.getByRole('tabpanel')).toContainText('8.81 CGPA');
+    await tabs.nth(3).click();
+    await expect(panel.getByRole('tabpanel')).toContainText('Prequel: Cambridge Innovative School');
+    await page.keyboard.press('Escape');
+    await expect(panel).toBeHidden();
+    await expect(page).toHaveURL(/\/watch\/christ-university\/$/);
+    await expect(open).toBeFocused();
+  });
+
+  test('the open panel has no serious accessibility issues', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/watch/vastra-kala/');
+    await page.getByRole('button', { name: 'View all' }).click();
+    const { violations } = await new AxeBuilder({ page })
+      .include('[data-bts-full]')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+    expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+  });
 });

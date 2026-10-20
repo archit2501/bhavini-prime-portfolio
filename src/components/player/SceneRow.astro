@@ -1,0 +1,31 @@
+---
+import type { SceneItem } from '../../lib/cues';
+import SceneIcon from './SceneIcon.astro';
+
+/**
+ * One row of the quick view or the full panel: a 64px thumbnail and two lines, name over role,
+ * like Prime's actor / character rows. src/scripts/behind-the-scenes.ts builds the same markup.
+ */
+interface Props {
+  item: SceneItem;
+}
+
+const { item } = Astro.props;
+const { thumb } = item;
+---
+
+<li class="scene-row">
+  <span class="scene-row__thumb" style={thumb.tone ? `--tone: ${thumb.tone}` : undefined}>
+    {thumb.src ? (
+      <img src={thumb.src} alt="" width="64" height="64" loading="lazy" decoding="async" />
+    ) : thumb.icon ? (
+      <SceneIcon name={thumb.icon} />
+    ) : (
+      <span class="scene-row__glyph">{thumb.glyph}</span>
+    )}
+  </span>
+  <span class="scene-row__text">
+    <span class="scene-row__title">{item.title}</span>
+    <span class="scene-row__detail">{item.detail}</span>
+  </span>
+</li>

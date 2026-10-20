@@ -1,0 +1,28 @@
+---
+import BadgeCheck from '@lucide/astro/icons/badge-check';
+import Calendar from '@lucide/astro/icons/calendar';
+import Clapperboard from '@lucide/astro/icons/clapperboard';
+import Film from '@lucide/astro/icons/film';
+import MapPin from '@lucide/astro/icons/map-pin';
+import Sparkles from '@lucide/astro/icons/sparkles';
+import User from '@lucide/astro/icons/user';
+import type { SceneIcon } from '../../lib/cues';
+
+/** The icons a "Behind the scenes" thumbnail can carry. */
+interface Props {
+  name: SceneIcon;
+}
+
+const ICONS = {
+  person: User,
+  pin: MapPin,
+  calendar: Calendar,
+  episodes: Clapperboard,
+  check: BadgeCheck,
+  skill: Sparkles,
+  film: Film,
+};
+const Icon = ICONS[Astro.props.name];
+---
+
+<Icon size={28} aria-hidden="true" />

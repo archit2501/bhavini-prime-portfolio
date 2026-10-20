@@ -97,6 +97,7 @@ describe('trailerFor', () => {
       mp4: '/x/trailers/f1jobs.mp4',
       poster: '/x/trailers/f1jobs-poster.jpg',
       captions: '/x/trailers/f1jobs.vtt',
+      metadata: '/x/trailers/f1jobs.meta.vtt',
     });
     expect(trailerFor('cambridge-innovative-school')).toBeUndefined();
     expect(trailerFor('f1jobs')?.mp4).toBe('/trailers/f1jobs.mp4');

@@ -18,11 +18,27 @@ export const TRAILER_CUES = {
   end: [10.4, 12],
 } as const;
 
+/** One trailer's HyperFrames variables (media/trailers/variables/<slug>.json). */
+export type TrailerVars = Record<string, string | number>;
+
+/** The stat as it appears on screen, e.g. "$100K+" or "8.81". */
+export function figure(vars: TrailerVars, n: 1 | 2): string {
+  const value = Number(vars[`stat${n}Value`]);
+  const decimals = Number(vars[`stat${n}Decimals`] ?? 0);
+  const text = value.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return `${vars[`stat${n}Prefix`] ?? ''}${text}${vars[`stat${n}Suffix`] ?? ''}`;
+}
+
 export interface TrailerFiles {
   webm: string;
   mp4: string;
   poster: string;
   captions: string;
+  /** The "Behind the scenes" metadata track (src/pages/trailers/[slug].meta.vtt.ts). */
+  metadata: string;
 }
 
 export function hasTrailer(slug: string): boolean {
@@ -37,5 +53,6 @@ export function trailerFor(slug: string, base = '/'): TrailerFiles | undefined {
     mp4: `${dir}.mp4`,
     poster: `${dir}-poster.jpg`,
     captions: `${dir}.vtt`,
+    metadata: `${dir}.meta.vtt`,
   };
 }

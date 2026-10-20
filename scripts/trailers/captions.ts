@@ -1,25 +1,14 @@
-import { TRAILER_CUES } from '../../src/lib/trailers.ts';
+import { figure, TRAILER_CUES, type TrailerVars } from '../../src/lib/trailers.ts';
+
+export { figure, type TrailerVars };
 
 /** Beats from media/trailers/shot-plan.json. */
 export const CUES = TRAILER_CUES;
-
-export type TrailerVars = Record<string, string | number>;
 
 export function stamp(seconds: number): string {
   const ms = Math.round(seconds * 1000);
   const pad = (n: number, w = 2) => String(n).padStart(w, '0');
   return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
-}
-
-/** The stat as it appears on screen, e.g. "$100K+" or "8.81". */
-export function figure(vars: TrailerVars, n: 1 | 2): string {
-  const value = Number(vars[`stat${n}Value`]);
-  const decimals = Number(vars[`stat${n}Decimals`] ?? 0);
-  const text = value.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-  return `${vars[`stat${n}Prefix`] ?? ''}${text}${vars[`stat${n}Suffix`] ?? ''}`;
 }
 
 /** WebVTT cue text escapes &, < and > as character references. */
