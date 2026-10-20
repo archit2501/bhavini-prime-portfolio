@@ -16,7 +16,9 @@
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun",
     "brand": "node scripts/brand/build.ts",
-    "art": "node scripts/art/build.ts"
+    "art": "node scripts/art/build.ts",
+    "trailers:assets": "node scripts/trailers/assets.ts",
+    "trailers:finalize": "node scripts/trailers/finalize.ts"
   },
   "engines": {
     "node": ">=22.22.0"

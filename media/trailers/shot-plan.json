@@ -1,0 +1,70 @@
+{
+  "plan_status": "final",
+  "plan_parts_done": [
+    "part1-plan",
+    "part2-design"
+  ],
+  "category": "stat",
+  "duration_s": 12,
+  "fps": 30,
+  "canvas": {
+    "w": 1920,
+    "h": 1080,
+    "aspect": "16:9"
+  },
+  "style": "A Prime Video-style title trailer for a portfolio, in the site's own brand: a personal 'bhavini original' ident, then the title's generated key art with a slow push-in, the title lettering rising in at the left like Prime's hero, a mint status line, two count-up stats, and an end card with Prime's white 'Watch now' button and a blue-check 'Open to roles' line. No Amazon or Prime Video marks, no audio.",
+  "palette": [
+    "#00050d",
+    "#ffffff",
+    "#37f1a3",
+    "#0070f0",
+    "#1a98ff"
+  ],
+  "palette_roles": {
+    "bg": "#00050d (Prime's measured page background)",
+    "art": "per-title key art from scripts/art (f1jobs blues, vastra-kala ambers, christ-university indigo and gold)",
+    "status": "#37f1a3 mint, Prime's ranking/status colour",
+    "check": "#0070f0 entitlement check",
+    "swoosh": "#1a98ff",
+    "eyebrow": "per-title accent from scripts/art/direction.ts"
+  },
+  "font": "Inter Variable from assets/fonts (the site's UI face)",
+  "beats": [
+    0.35,
+    0.55,
+    1.9,
+    2.1,
+    2.9,
+    3.5,
+    4.9,
+    5.1,
+    7.7,
+    8.05,
+    10.1,
+    10.4,
+    12.0
+  ],
+  "beat_names": {
+    "0.35": "ident fades up",
+    "0.55": "swoosh wipes in",
+    "1.9": "ident out",
+    "2.1": "key art in, slow push-in starts (runs to 12.0)",
+    "2.9": "title lettering rises in; eyebrow above",
+    "3.5": "mint status line",
+    "4.9": "title out",
+    "5.1": "stat 1 counts up, label and detail follow",
+    "7.7": "stat 1 out",
+    "10.1": "stat 2 out",
+    "10.4": "end card: lettering, Watch now, Open to roles; holds to 12.0",
+    "8.05": "stat 2 counts up (after stat 1 has cleared)"
+  },
+  "export": "mp4",
+  "export_spec": {
+    "container": "mp4 (H.264, yuv420p, faststart, no audio) + webm (VP9, no audio), 1920x1080, 30 fps, 12.0 s",
+    "size_budget_bytes": 2000000,
+    "post": "scripts/trailers/finalize.ts encodes, checks size, writes poster and WebVTT captions into public/trailers/"
+  },
+  "asset_needs": [],
+  "asset_needs_note": "No search: key art, lettering and ident come from the site's own generators (scripts/art, scripts/brand) via scripts/trailers/assets.ts.",
+  "variables": "variables/<slug>.json, one per trailer"
+}
