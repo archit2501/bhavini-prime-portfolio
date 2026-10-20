@@ -1,0 +1,40 @@
+{
+  "name": "bhavini-prime-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4427",
+    "build": "astro build",
+    "preview": "astro preview --port 4427 --ignore-lock",
+    "lint": "eslint .",
+    "type-check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "lighthouse": "lhci autorun"
+  },
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "dependencies": {
+    "astro": "7.4.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.11",
+    "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.64.1",
+    "@vitest/coverage-v8": "4.1.12",
+    "eslint": "10.13.0",
+    "eslint-plugin-astro": "3.2.1",
+    "eslint-plugin-jsx-a11y-x": "0.2.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-astro": "1.1.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "4.1.12"
+  }
+}
