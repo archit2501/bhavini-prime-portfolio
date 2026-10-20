@@ -4,6 +4,7 @@ import LandscapeCard from '../components/rows/LandscapeCard.astro';
 import PreviewCard from '../components/rows/PreviewCard.astro';
 import Row from '../components/rows/Row.astro';
 import TopTenCard from '../components/rows/TopTenCard.astro';
+import GenreTile from '../components/skills/GenreTile.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { artwork } from '../lib/artwork-assets';
 import { certificationCard, titleCard } from '../lib/cards';
@@ -73,7 +74,18 @@ const now = new Date();
           </Row>
         );
       }
-      // The hero renders above; the skills row arrives with the Categories page (task 3.3.2).
+      if (row.kind === 'skills') {
+        return (
+          <Row id={row.id} title={row.title} seeMore={withBase('/skills/')}>
+            {catalog.skills.map((s) => (
+              <li>
+                <GenreTile href={withBase(`/skills/${s.slug}/`)} name={s.name} glow={s.glow} />
+              </li>
+            ))}
+          </Row>
+        );
+      }
+      // The hero renders above.
       return null;
     })}
   </div>

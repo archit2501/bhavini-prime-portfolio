@@ -9,6 +9,7 @@ test('home rows follow the page order', async ({ page }) => {
     'Bhavini Originals: Experience',
     'Education',
     'Certifications',
+    'Browse by skill',
   ]);
 });
 

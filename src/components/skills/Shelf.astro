@@ -1,0 +1,47 @@
+---
+/** A titled grid of 16:9 cards, as on Prime's collection pages ("See more"). */
+interface Props {
+  id: string;
+  heading: string;
+  /** Shown after the heading, e.g. "2 titles". */
+  count?: string;
+}
+
+const { id, heading, count } = Astro.props;
+---
+
+<section class="shelf" aria-labelledby={id}>
+  <h2 class="shelf__heading" id={id}>
+    {heading}
+    {count && <span class="shelf__count">{count}</span>}
+  </h2>
+  <ul class="shelf__grid">
+    <slot />
+  </ul>
+</section>
+
+<style>
+  .shelf__heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-row-title);
+    font-weight: 700;
+  }
+
+  .shelf__count {
+    color: var(--color-text-meta);
+    font-size: var(--fs-16);
+    font-weight: 500;
+  }
+
+  .shelf__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.6875rem), 1fr));
+    gap: var(--space-6) 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

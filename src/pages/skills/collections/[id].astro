@@ -1,0 +1,83 @@
+---
+import type { GetStaticPaths } from 'astro';
+import LandscapeCard from '../../../components/rows/LandscapeCard.astro';
+import PreviewCard from '../../../components/rows/PreviewCard.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { artwork } from '../../../lib/artwork-assets';
+import { certificationCard, titleCard } from '../../../lib/cards';
+import { collections } from '../../../lib/collections';
+import { loadCatalog } from '../../../lib/content';
+import { withBase } from '../../../lib/url';
+
+/** A featured collection from the Categories page, as a grid of its titles and certificates. */
+export const getStaticPaths = (async () => {
+  const catalog = await loadCatalog();
+  return collections(catalog).map((c) => ({ params: { id: c.id } }));
+}) satisfies GetStaticPaths;
+
+const catalog = await loadCatalog();
+const collection = collections(catalog).find((c) => c.id === Astro.params.id);
+if (!collection) throw new Error(`No collection "${Astro.params.id}"`);
+---
+
+<BaseLayout title={collection.name} description={collection.blurb}>
+  <section class="collection gutter" aria-labelledby="collection-title">
+    <p class="collection__eyebrow">
+      <a href={withBase('/skills/')}>Featured collection</a>
+    </p>
+    <h1 class="collection__title" id="collection-title">
+      {collection.name}
+    </h1>
+    <p class="collection__blurb">{collection.blurb}</p>
+    <ul class="collection__grid">
+      {collection.titles.map((t) => (
+        <li>
+          <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
+        </li>
+      ))}
+      {collection.certifications.map((c) => (
+        <li>
+          <LandscapeCard {...certificationCard(c)} image={artwork(c.slug).card} />
+        </li>
+      ))}
+    </ul>
+  </section>
+  <PreviewCard catalog={catalog} />
+</BaseLayout>
+
+<style>
+  .collection {
+    display: grid;
+    gap: var(--space-3);
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
+  }
+
+  .collection__eyebrow a {
+    color: #4a8ff5;
+    font-size: var(--fs-14);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .collection__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .collection__blurb {
+    margin-bottom: var(--space-4);
+    color: var(--color-text-synopsis);
+    font-size: var(--fs-18);
+  }
+
+  .collection__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.6875rem), 1fr));
+    gap: var(--space-6) 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

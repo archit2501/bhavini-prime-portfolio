@@ -1,0 +1,84 @@
+---
+/**
+ * A tile from Prime's Categories page, 248x140 at 1440: a dark "genre" tile with a soft glow in
+ * its own colour and the name bottom left at 20px/700, or a Prime-blue "featured collection"
+ * tile with the name centred.
+ */
+interface Props {
+  href: string;
+  name: string;
+  /** Genre tiles: the glow colour. */
+  glow?: string;
+  variant?: 'genre' | 'featured';
+}
+
+const { href, name, glow, variant = 'genre' } = Astro.props;
+---
+
+<a
+  class:list={['tile', `tile--${variant}`]}
+  href={href}
+  style={glow ? `--glow: ${glow}` : undefined}
+  data-tile={variant}
+>
+  <span class="tile__name">{name}</span>
+</a>
+
+<style>
+  .tile {
+    position: relative;
+    display: flex;
+    aspect-ratio: 248 / 140;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    color: var(--color-text);
+    text-decoration: none;
+    isolation: isolate;
+    transition:
+      transform var(--dur-base) var(--ease-standard),
+      filter var(--dur-base) var(--ease-standard);
+  }
+
+  .tile:hover {
+    transform: scale(1.04);
+    filter: brightness(1.15);
+  }
+
+  .tile__name {
+    font-size: var(--fs-20);
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 1px 6px rgb(0 0 0 / 45%);
+  }
+
+  /* Dark, with a blurred glow from the top right and a fainter one under the name. */
+  .tile--genre {
+    align-items: flex-end;
+    padding: var(--space-4);
+    background:
+      radial-gradient(
+        65% 95% at 88% 8%,
+        color-mix(in srgb, var(--glow, var(--color-accent)) 70%, transparent) 0%,
+        transparent 72%
+      ),
+      radial-gradient(
+        55% 60% at 10% 115%,
+        color-mix(in srgb, var(--glow, var(--color-accent)) 28%, transparent) 0%,
+        transparent 80%
+      ),
+      var(--color-surface);
+  }
+
+  /* Prime's featured collections: bright blue, label centred. */
+  .tile--featured {
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    background: #4a8ff5;
+    text-align: center;
+  }
+
+  .tile--featured .tile__name {
+    text-shadow: none;
+  }
+</style>

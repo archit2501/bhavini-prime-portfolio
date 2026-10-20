@@ -1,0 +1,101 @@
+---
+import GenreTile from '../../components/skills/GenreTile.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { collections } from '../../lib/collections';
+import { loadCatalog } from '../../lib/content';
+import { withBase } from '../../lib/url';
+
+/**
+ * Prime's Categories page: "Categories" (32px/700), then "Genres", a five-column grid of glowing
+ * tiles (one per skill), then "Featured collections" in Prime blue.
+ */
+const catalog = await loadCatalog();
+const featured = collections(catalog);
+---
+
+<BaseLayout
+  title="Skills"
+  description={`Bhavini Malhotra's skills: ${catalog.skills.map((s) => s.name).join(', ')}.`}
+>
+  <div class="categories gutter">
+    <h1 class="categories__title">Categories</h1>
+
+    <section aria-labelledby="genres">
+      <h2 class="categories__heading" id="genres">
+        Genres
+      </h2>
+      <ul class="categories__grid">
+        {catalog.skills.map((s) => (
+          <li>
+            <GenreTile href={withBase(`/skills/${s.slug}/`)} name={s.name} glow={s.glow} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="featured">
+      <h2 class="categories__heading" id="featured">
+        Featured collections
+      </h2>
+      <ul class="categories__grid">
+        {featured.map((c) => (
+          <li>
+            <GenreTile
+              href={withBase(`/skills/collections/${c.id}/`)}
+              name={c.name}
+              variant="featured"
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .categories {
+    display: grid;
+    gap: var(--space-8);
+    padding-block: calc(var(--nav-h) + var(--space-8)) var(--space-12);
+  }
+
+  .categories__title {
+    font-size: var(--fs-32);
+    font-weight: 700;
+    line-height: 1.125;
+  }
+
+  .categories__heading {
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-20);
+    font-weight: 700;
+  }
+
+  /* Five across at 1440 (248x140 tiles, 10px apart), fewer on smaller screens. */
+  .categories__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 37.5em) {
+    .categories__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 55em) {
+    .categories__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 80em) {
+    .categories__grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+</style>
