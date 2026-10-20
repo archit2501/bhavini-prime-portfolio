@@ -64,8 +64,8 @@ describe('the real catalog', () => {
     ).toBe('1 year');
   });
 
-  it('lists the one figure she has not confirmed yet', () => {
-    expect(unverifiedFigures(catalog)).toEqual(['highSchool: 90.4% in high school']);
+  it('has every figure confirmed', () => {
+    expect(unverifiedFigures(catalog)).toEqual([]);
   });
 
   it('features four titles in the hero carousel, current role first', () => {
@@ -268,8 +268,15 @@ describe('assertCatalog', () => {
     expect(() => assertCatalog(loadContent(), { requireVerified: false })).not.toThrow();
   });
 
+  it('passes the deploy build, which needs every figure confirmed', () => {
+    expect(() => assertCatalog(loadContent(), { requireVerified: true })).not.toThrow();
+  });
+
   it('refuses unconfirmed figures in the deploy build', () => {
-    expect(() => assertCatalog(loadContent(), { requireVerified: true })).toThrow(
+    const c = clone();
+    c.figures.highSchool.verified = false;
+    expect(unverifiedFigures(c)).toEqual(['highSchool: 90.4% in high school']);
+    expect(() => assertCatalog(c, { requireVerified: true })).toThrow(
       'unconfirmed figure highSchool: 90.4% in high school',
     );
   });
