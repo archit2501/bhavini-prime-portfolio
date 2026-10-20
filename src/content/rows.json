@@ -1,18 +1,21 @@
 [
   {
     "id": "hero",
+    "order": 1,
     "kind": "hero",
     "title": "Featured",
     "items": ["f1jobs", "christ-university", "vastra-kala", "clinical"]
   },
   {
     "id": "continue",
+    "order": 2,
     "kind": "continue",
     "title": "Continue watching",
     "items": ["f1jobs"]
   },
   {
     "id": "top10",
+    "order": 3,
     "kind": "top10",
     "title": "Top 10 in Bhavini's career",
     "figures": [
@@ -30,23 +33,27 @@
   },
   {
     "id": "experience",
+    "order": 4,
     "kind": "titles",
     "title": "Bhavini Originals: Experience",
     "items": ["f1jobs", "vastra-kala", "clinical", "youth-for-parivarthan"]
   },
   {
     "id": "education",
+    "order": 5,
     "kind": "titles",
     "title": "Education",
     "items": ["christ-university", "cambridge-innovative-school"]
   },
   {
     "id": "certifications",
+    "order": 6,
     "kind": "certifications",
     "title": "Certifications"
   },
   {
     "id": "skills",
+    "order": 7,
     "kind": "skills",
     "title": "Browse by skill"
   }

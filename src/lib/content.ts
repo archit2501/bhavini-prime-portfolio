@@ -20,7 +20,7 @@ export function loadCatalog(): Promise<Catalog> {
         b.date.localeCompare(a.date),
       ),
       guide: guide.data,
-      rows: (await getCollection('rows')).map((r) => ({ ...r.data, id: r.id })),
+      rows: (await getCollection('rows')).map((r) => ({ ...r.data, id: r.id })).sort(byOrder),
     };
     assertCatalog(catalog, { requireVerified: process.env.REQUIRE_VERIFIED === '1' });
     return catalog;

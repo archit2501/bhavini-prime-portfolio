@@ -129,6 +129,10 @@ export function checkCatalog(catalog: Catalog): string[] {
     'skills',
     catalog.skills.map((s) => s.order),
   );
+  unique(
+    'rows',
+    catalog.rows.map((r) => r.order),
+  );
 
   const checkDates = (where: string, start: string, end: string | null) => {
     if (end !== null && monthIndex(start) > monthIndex(end, 'end')) {

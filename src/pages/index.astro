@@ -1,14 +1,51 @@
 ---
 import HeroCarousel from '../components/home/HeroCarousel.astro';
+import LandscapeCard from '../components/rows/LandscapeCard.astro';
+import Row from '../components/rows/Row.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { artwork } from '../lib/artwork-assets';
+import { certificationCard, titleCard } from '../lib/cards';
 import { rowTitles } from '../lib/catalog';
 import { loadCatalog } from '../lib/content';
 import { SITE } from '../lib/site';
+import { withBase } from '../lib/url';
 
 const catalog = await loadCatalog();
+const titleRows = catalog.rows.filter((r) => r.kind === 'titles');
+const certRow = catalog.rows.find((r) => r.kind === 'certifications');
 ---
 
+<!-- Row cards load lazily so the hero's key art, the LCP image, gets the bandwidth first. -->
 <BaseLayout>
   <h1 class="visually-hidden">{SITE.name}</h1>
   <HeroCarousel titles={rowTitles(catalog, 'hero')} />
+  <div class="rows">
+    {titleRows.map((row) => (
+      <Row id={row.id} title={row.title} seeMore={withBase(`/browse/${row.id}/`)}>
+        {rowTitles(catalog, row.id).map((t) => (
+          <li>
+            <LandscapeCard {...titleCard(t)} image={artwork(t.slug).card} />
+          </li>
+        ))}
+      </Row>
+    ))}
+    {certRow && (
+      <Row id={certRow.id} title={certRow.title}>
+        {catalog.certifications.map((c) => (
+          <li>
+            <LandscapeCard {...certificationCard(c)} image={artwork(c.slug).card} />
+          </li>
+        ))}
+      </Row>
+    )}
+  </div>
 </BaseLayout>
+
+<style>
+  /* The first row heading tucks 10px into the hero's faded bottom edge, as on primevideo.com. */
+  .rows {
+    position: relative;
+    z-index: 1;
+    margin-top: -0.625rem;
+  }
+</style>
