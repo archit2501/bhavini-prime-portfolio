@@ -118,7 +118,7 @@ const last = axis.months[axis.months.length - 1];
             </th>
             {axis.months.map((m) => (
               <th scope="col" class:list={['guide__month', { 'guide__month--year': m.newYear }]}>
-                <span aria-hidden="true">{m.newYear ? m.full : m.label}</span>
+                <span aria-hidden="true">{m.newYear ? m.full.split(' ')[1] : m.label}</span>
                 <span class="visually-hidden">{m.full}</span>
               </th>
             ))}
@@ -384,7 +384,6 @@ const last = axis.months[axis.months.length - 1];
   .guide__month {
     padding-left: var(--space-2);
     border-left: 1px solid rgb(255 255 255 / 20%);
-    font-size: var(--fs-14);
   }
 
   .guide__month--year {
@@ -593,7 +592,7 @@ const last = axis.months[axis.months.length - 1];
     border-radius: var(--radius-8);
     background: var(--color-text);
     color: var(--color-on-light);
-    font-size: var(--fs-14);
+    font-size: var(--fs-18);
     font-weight: 500;
     white-space: nowrap;
     transform: translateX(-50%);

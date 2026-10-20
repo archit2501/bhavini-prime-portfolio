@@ -70,16 +70,19 @@ import SearchField from './SearchField.astro';
     position: fixed;
     inset: auto;
     top: calc(var(--nav-h) + var(--space-1));
-    right: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
-    left: max(var(--space-2), calc(var(--gutter) - 1.3125rem));
-    width: auto;
+    right: 0;
+    left: 0;
+    /* Prime's panel: about 1140px, centred under the nav. */
+    width: min(71.25rem, calc(100% - 2 * max(var(--space-2), calc(var(--gutter) - 1.3125rem))));
     max-height: calc(100svh - var(--nav-h) - var(--space-4));
-    margin: 0;
+    margin: 0 auto;
     padding: 1.3125rem;
     overflow-y: auto;
     border: 0;
     border-radius: var(--radius-12);
-    background: var(--color-glass);
+    /* A little more opaque than the nav's glass (.8), so the grey result text keeps 4.5:1 over
+       even the brightest hero art behind it. */
+    background: rgb(25 30 37 / 92%);
     -webkit-backdrop-filter: var(--blur-glass);
     backdrop-filter: var(--blur-glass);
     box-shadow: var(--shadow-glass);

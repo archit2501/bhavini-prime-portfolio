@@ -25,7 +25,7 @@ test('the nav search opens a frosted panel over a dimmed page', async ({ page })
     };
   });
   expect(look).toEqual({
-    bg: 'rgba(25, 30, 37, 0.8)',
+    bg: 'rgba(25, 30, 37, 0.92)',
     radius: '12px',
     padding: '21px',
     backdrop: 'rgba(0, 5, 13, 0.55)',
