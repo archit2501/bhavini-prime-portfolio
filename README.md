@@ -89,15 +89,30 @@ Never paste them in plain text into code, comments or content.
 
 ## Deploy
 
-Not live yet. The site is meant for GitHub Pages from `main`, deployed by hand (plan task 4.2.2, which waits on her go-ahead).
+GitHub Pages, by hand only: `.github/workflows/deploy.yml` runs from the Actions tab (Run workflow) and nowhere else.
 
-For a project page it builds with these variables:
+- It refuses any branch but `main` and any commit whose CI run didn't pass.
+- It builds the public site with `REQUIRE_VERIFIED=1`, the right `BASE_PATH` and `SITE_URL`, and scans it with the brand and privacy guards.
+- It publishes the site, then runs `tests/e2e/deployed.spec.ts` against the live URL.
 
-- `BASE_PATH=/bhavini-prime-portfolio/`
-- `SITE_URL=https://archit2501.github.io`
-- `REQUIRE_VERIFIED=1`
+Before the first run:
 
-Every internal link goes through `withBase` (`src/lib/url.ts`), so the base path is respected everywhere.
+1. In the repository settings, under Pages, set the source to **GitHub Actions**.
+2. Confirm every figure in `src/content/figures.json` (`"verified": true`). The public build refuses any she hasn't confirmed.
+
+The project page lives at `https://archit2501.github.io/bhavini-prime-portfolio/`. Every internal link goes through `withBase` (`src/lib/url.ts`), so the base path is respected everywhere. To rehearse it locally:
+
+```bash
+BASE_PATH=/bhavini-prime-portfolio/ npm run build
+```
+
+```bash
+BASE_PATH=/bhavini-prime-portfolio/ npx astro preview --port 4433
+```
+
+```bash
+DEPLOYED_URL=http://localhost:4433/bhavini-prime-portfolio/ npx playwright test --project=desktop
+```
 
 ## Licence
 
