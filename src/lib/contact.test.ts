@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   contactLink,
@@ -5,6 +6,7 @@ import {
   encodeContact,
   ENCODED_CONTACT,
   formatPhone,
+  pdfSummary,
   spellOut,
 } from './contact';
 
@@ -50,5 +52,34 @@ describe('formatting', () => {
       href: 'tel:+911234567890',
       text: '+91 12345 67890',
     });
+  });
+});
+
+describe('pdfSummary', () => {
+  const pdf = (body: string, size = body.length) =>
+    new Uint8Array([
+      ...new TextEncoder().encode(body),
+      ...new Uint8Array(Math.max(0, size - body.length)),
+    ]);
+
+  it('counts pages and rounds the size to KB', () => {
+    expect(pdfSummary(pdf('<< /Type /Pages >> << /Type /Page >>', 81_631))).toBe(
+      'PDF, 1 page, 80 KB',
+    );
+    expect(pdfSummary(pdf('/Type/Page /Type /Page /Type /Pages', 300_000))).toBe(
+      'PDF, 2 pages, 293 KB',
+    );
+  });
+
+  it('never says 0 KB, and copes with no pages at all', () => {
+    expect(pdfSummary(pdf('/Type /Page'))).toBe('PDF, 1 page, 1 KB');
+    expect(pdfSummary(pdf('not a pdf'))).toBe('PDF, 0 pages, 1 KB');
+  });
+
+  it('reads the real resume', () => {
+    const bytes = readFileSync(
+      new URL('../../public/bhavini-malhotra-resume.pdf', import.meta.url),
+    );
+    expect(pdfSummary(bytes)).toMatch(/^PDF, 1 page, \d+ KB$/);
   });
 });

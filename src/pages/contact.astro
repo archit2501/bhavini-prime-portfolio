@@ -1,0 +1,240 @@
+---
+import BriefcaseBusiness from '@lucide/astro/icons/briefcase-business';
+import FileDown from '@lucide/astro/icons/file-down';
+import Globe from '@lucide/astro/icons/globe';
+import Mail from '@lucide/astro/icons/mail';
+import Phone from '@lucide/astro/icons/phone';
+import { Picture } from 'astro:assets';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import ChannelTile from '../components/contact/ChannelTile.astro';
+import ContactLink from '../components/ContactLink.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { artwork } from '../lib/artwork-assets';
+import { pdfSummary, RESUME_PATH } from '../lib/contact';
+import { loadCatalog } from '../lib/content';
+import { SITE } from '../lib/site';
+import { withBase } from '../lib/url';
+
+/**
+ * Contact as Prime's subscriptions storefront ("I subscribe, my way"): a tilted wall of her title
+ * art behind a big two-line headline with the second line in blue, then the ways to reach her as
+ * channels. Email and phone are decoded in the browser only (decision Q7).
+ */
+const catalog = await loadCatalog();
+const wall = [...catalog.titles, ...catalog.certifications].map((t) => artwork(t.slug).card);
+// Builds run from the project root; the bundled page can't resolve paths from its own URL.
+const resume = pdfSummary(readFileSync(join(process.cwd(), 'public', RESUME_PATH)));
+const linkedinPath = new URL(SITE.linkedin).pathname.replace(/\/$/, '');
+const f1jobsHost = new URL(SITE.organization.url).host;
+---
+
+<BaseLayout
+  title="Contact"
+  description="Start a conversation with Bhavini Malhotra: email, phone, LinkedIn, F1Jobs.io or her resume."
+>
+  <section class="store" aria-labelledby="store-title">
+    <div class="store__wall" aria-hidden="true">
+      {[...wall, ...wall].slice(0, 12).map((image) => (
+        <Picture
+          src={image}
+          alt=""
+          formats={['avif', 'webp']}
+          widths={[320, 480]}
+          sizes="22vw"
+          quality={60}
+          loading="eager"
+          class="store__poster"
+        />
+      ))}
+    </div>
+    <div class="store__copy gutter">
+      <h1 class="store__title" id="store-title">
+        Start a conversation,
+        <span class="store__blue">your way</span>
+      </h1>
+      <p class="store__lede">Email, call or connect. Open to roles in Bangalore.</p>
+      <div class="store__ctas">
+        <ContactLink kind="email" label="Email Bhavini" class="store__cta store__cta--primary" />
+        <a class="store__cta store__cta--secondary" href={withBase(RESUME_PATH)} download>
+          Download resume
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="channels gutter" aria-labelledby="channels-title">
+    <h2 class="channels__title" id="channels-title">
+      Channels
+    </h2>
+    <ul class="channels__grid">
+      <ChannelTile name="Email" tone="#0478fc" contact="email">
+        <Mail slot="icon" size={26} />
+      </ChannelTile>
+      <ChannelTile name="Phone" tone="#2bb3a3" contact="phone">
+        <Phone slot="icon" size={26} />
+      </ChannelTile>
+      <ChannelTile
+        name="LinkedIn"
+        tone="#33373d"
+        detail={`linkedin.com${linkedinPath}`}
+        href={SITE.linkedin}
+        action="Open profile"
+        external
+      >
+        <BriefcaseBusiness slot="icon" size={26} />
+      </ChannelTile>
+      <ChannelTile
+        name="F1Jobs.io"
+        tone="#33373d"
+        detail="Where she works now"
+        href={SITE.organization.url}
+        action={`Visit ${f1jobsHost}`}
+        external
+      >
+        <Globe slot="icon" size={26} />
+      </ChannelTile>
+      <ChannelTile
+        name="Resume"
+        tone="#9b5cff"
+        detail={resume}
+        href={withBase(RESUME_PATH)}
+        action="Download"
+        download
+      >
+        <FileDown slot="icon" size={26} />
+      </ChannelTile>
+    </ul>
+    <p class="visually-hidden" role="status" aria-live="polite" data-copy-status></p>
+  </section>
+</BaseLayout>
+
+<style>
+  /* The storefront hero: art tilted up and away to the top right, copy bottom left. */
+  .store {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: max(32rem, 72svh);
+    padding-top: calc(var(--nav-h) + var(--space-8));
+    padding-bottom: var(--space-12);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .store__wall {
+    position: absolute;
+    top: -12%;
+    right: -8%;
+    z-index: -2;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    width: min(78rem, 110vw);
+    transform: rotate(-12deg);
+    transform-origin: 100% 0;
+  }
+
+  .store__wall :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-16);
+    box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 45%);
+  }
+
+  .store::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(20deg, rgb(0 5 13 / 100%) 18%, rgb(0 5 13 / 70%) 45%, rgb(0 5 13 / 15%) 75%),
+      linear-gradient(0deg, var(--color-bg) 0%, transparent 30%);
+  }
+
+  .store__copy {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .store__title {
+    display: grid;
+    font-size: clamp(2.5rem, 1.2rem + 5vw, 5.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /* The mock's bright blue second line. */
+  .store__blue {
+    color: #0478fc;
+  }
+
+  .store__lede {
+    font-size: clamp(1.125rem, 0.9rem + 1vw, 1.75rem);
+    font-weight: 500;
+  }
+
+  .store__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .store__ctas :global(.store__cta) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cta-h);
+    padding: 0 var(--space-8);
+    border-radius: var(--radius-8);
+    font-size: var(--fs-18);
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform var(--dur-fast) var(--ease-cta);
+  }
+
+  .store__ctas :global(.store__cta:hover) {
+    transform: scale(1.02);
+  }
+
+  .store__ctas :global(.store__cta--primary) {
+    background: var(--color-btn-solid);
+    color: var(--color-on-light);
+  }
+
+  .store__ctas :global(.store__cta--secondary) {
+    background: var(--color-btn);
+    color: var(--color-text);
+  }
+
+  /* Without JavaScript the email is spelled out in the primary button: let it wrap. */
+  .store__ctas :global(span.store__cta--primary) {
+    padding-block: var(--space-2);
+    font-size: var(--fs-16);
+    text-align: center;
+  }
+
+  .channels {
+    padding-bottom: var(--space-12);
+  }
+
+  .channels__title {
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-row-title);
+    font-weight: 700;
+  }
+
+  .channels__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

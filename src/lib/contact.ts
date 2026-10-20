@@ -40,3 +40,11 @@ export function contactLink(kind: ContactKind, encoded: string): { href: string;
     ? { href: `mailto:${value}`, text: value }
     : { href: `tel:${value}`, text: formatPhone(value) };
 }
+
+/** "PDF, 1 page, 80 KB": read from the file itself at build time, so it can't go stale. */
+export function pdfSummary(bytes: Uint8Array): string {
+  const text = new TextDecoder('latin1').decode(bytes);
+  const pages = (text.match(/\/Type\s*\/Page(?!s)/g) ?? []).length;
+  const kb = Math.max(1, Math.round(bytes.length / 1024));
+  return `PDF, ${pages} page${pages === 1 ? '' : 's'}, ${kb} KB`;
+}

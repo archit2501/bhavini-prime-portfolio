@@ -1,0 +1,168 @@
+---
+import Check from '@lucide/astro/icons/check';
+import Copy from '@lucide/astro/icons/copy';
+import { ENCODED_CONTACT, type ContactKind } from '../../lib/contact';
+import ContactLink from '../ContactLink.astro';
+
+/**
+ * One "channel" on the Contact storefront, after Prime's add-on subscriptions: a round logo
+ * tile, the name, how to reach her, and one action. Email and phone are decoded in the browser
+ * (decision Q7) and get a Copy button that says so when it worked.
+ */
+interface Props {
+  name: string;
+  /** Background of the round logo tile. */
+  tone: string;
+  /** Email or phone: shown and copied, never written into the HTML. */
+  contact?: ContactKind;
+  /** Otherwise a plain link. */
+  href?: string;
+  detail?: string;
+  action?: string;
+  download?: boolean;
+  external?: boolean;
+}
+
+const { name, tone, contact, href, detail, action, download, external } = Astro.props;
+const what = contact === 'email' ? 'email address' : 'phone number';
+---
+
+<li class="channel">
+  <span class="channel__logo" style={`background: ${tone}`} aria-hidden="true">
+    <slot name="icon" />
+  </span>
+  <h3 class="channel__name">{name}</h3>
+  <p class="channel__detail">
+    {contact ? <ContactLink kind={contact} class="channel__value" /> : detail}
+  </p>
+  {contact ? (
+    <button
+      class="channel__action"
+      type="button"
+      data-copy={contact}
+      data-value={ENCODED_CONTACT[contact]}
+      data-what={what}
+    >
+      <Copy size={18} class="channel__icon-copy" aria-hidden="true" />
+      <Check size={18} class="channel__icon-done" aria-hidden="true" />
+      <span data-copy-label>Copy {what}</span>
+    </button>
+  ) : (
+    <a
+      class="channel__action"
+      href={href}
+      download={download || undefined}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener' : undefined}
+    >
+      {action}
+      {external && <span class="visually-hidden"> (opens in a new tab)</span>}
+    </a>
+  )}
+</li>
+
+<script>
+  import { decodeContact } from '../../lib/contact';
+
+  // Copy the decoded address or number; the button itself says "Copied", and so does a status.
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    const original = label?.textContent ?? '';
+    let timer = 0;
+    button.addEventListener('click', async () => {
+      const what = button.dataset.what ?? '';
+      let copied = true;
+      try {
+        await navigator.clipboard.writeText(decodeContact(button.dataset.value ?? ''));
+      } catch {
+        copied = false;
+      }
+      button.dataset.copied = String(copied);
+      if (label) label.textContent = copied ? 'Copied' : "Couldn't copy";
+      if (status) {
+        status.textContent = copied
+          ? `${what[0].toUpperCase()}${what.slice(1)} copied`
+          : `Couldn't copy the ${what}; select it instead`;
+      }
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (label) label.textContent = original;
+        delete button.dataset.copied;
+      }, 2500);
+    });
+  }
+</script>
+
+<style>
+  .channel {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: var(--radius-12);
+    background: var(--color-surface);
+  }
+
+  .channel__logo {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-pill);
+    color: #fff;
+  }
+
+  .channel__name {
+    font-size: var(--fs-20);
+    font-weight: 700;
+  }
+
+  .channel__detail {
+    color: var(--color-text-muted);
+    font-size: var(--fs-14);
+    overflow-wrap: anywhere;
+  }
+
+  .channel__detail :global(a) {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .channel__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 3rem;
+    margin-top: var(--space-3);
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-8);
+    background: var(--color-btn);
+    color: var(--color-text);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color var(--dur-fast) ease-in-out;
+  }
+
+  .channel__action:hover {
+    background: var(--color-btn-hover);
+  }
+
+  .channel__action :global(.channel__icon-done),
+  .channel__action[data-copied='true'] :global(.channel__icon-copy) {
+    display: none;
+  }
+
+  .channel__action[data-copied='true'] :global(.channel__icon-done) {
+    display: block;
+  }
+
+  .channel__action[data-copied='true'] {
+    background: var(--color-text);
+    color: var(--color-on-light);
+  }
+</style>
