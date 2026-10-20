@@ -1,0 +1,34 @@
+[
+  { "id": "continue", "kind": "continue", "title": "Continue watching", "items": ["f1jobs"] },
+  {
+    "id": "top10",
+    "kind": "top10",
+    "title": "Top 10 in Bhavini's career",
+    "figures": [
+      "revenue",
+      "deals",
+      "workflow",
+      "tickets",
+      "units",
+      "regions",
+      "cgpa",
+      "sessions",
+      "community",
+      "highSchool"
+    ]
+  },
+  {
+    "id": "experience",
+    "kind": "titles",
+    "title": "Bhavini Originals: Experience",
+    "items": ["f1jobs", "vastra-kala", "clinical", "youth-for-parivarthan"]
+  },
+  {
+    "id": "education",
+    "kind": "titles",
+    "title": "Education",
+    "items": ["christ-university", "cambridge-innovative-school"]
+  },
+  { "id": "certifications", "kind": "certifications", "title": "Certifications" },
+  { "id": "skills", "kind": "skills", "title": "Browse by skill" }
+]

@@ -1,0 +1,97 @@
+{
+  "guide": {
+    "tracks": [
+      {
+        "id": "sales",
+        "name": "Sales & Operations"
+      },
+      {
+        "id": "marketing",
+        "name": "Marketing & Brand"
+      },
+      {
+        "id": "clinical",
+        "name": "Psychology & Clinical"
+      },
+      {
+        "id": "community",
+        "name": "Community"
+      },
+      {
+        "id": "leadership",
+        "name": "Leadership"
+      },
+      {
+        "id": "education",
+        "name": "Education"
+      },
+      {
+        "id": "certifications",
+        "name": "Certifications"
+      }
+    ],
+    "entries": [
+      {
+        "track": "sales",
+        "label": "F1Jobs.io",
+        "start": "2026-05",
+        "end": null,
+        "title": "f1jobs"
+      },
+      {
+        "track": "marketing",
+        "label": "Vastra Kala",
+        "start": "2025-08",
+        "end": "2025-12",
+        "title": "vastra-kala"
+      },
+      {
+        "track": "clinical",
+        "label": "ANR Hospital and AAS Rehab Centre",
+        "start": "2024-04",
+        "end": "2024-06",
+        "title": "clinical"
+      },
+      {
+        "track": "community",
+        "label": "Youth for Parivarthan",
+        "start": "2024-06",
+        "end": "2024-11",
+        "title": "youth-for-parivarthan"
+      },
+      {
+        "track": "leadership",
+        "label": "Student Representative, University Student Council",
+        "start": "2023",
+        "end": "2024",
+        "title": "christ-university"
+      },
+      {
+        "track": "education",
+        "label": "Cambridge Innovative School",
+        "start": "2023-04",
+        "end": "2023-04",
+        "title": "cambridge-innovative-school"
+      },
+      {
+        "track": "education",
+        "label": "Christ University",
+        "start": "2023",
+        "end": "2026",
+        "title": "christ-university"
+      },
+      {
+        "track": "certifications",
+        "label": "NPTEL Training of Trainers",
+        "start": "2024-10",
+        "end": "2024-10"
+      },
+      {
+        "track": "certifications",
+        "label": "HubSpot Digital Marketing and Social Media Marketing",
+        "start": "2025-12",
+        "end": "2025-12"
+      }
+    ]
+  }
+}

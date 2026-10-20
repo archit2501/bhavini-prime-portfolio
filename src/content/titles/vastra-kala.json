@@ -1,0 +1,29 @@
+{
+  "kind": "series",
+  "order": 2,
+  "title": "Vastra Kala",
+  "role": "Marketing & Brand Operations Intern",
+  "organization": "Vastra Kala",
+  "location": "Phagwara, India (Hybrid)",
+  "start": "2025-08",
+  "end": "2025-12",
+  "ribbon": "RECENTLY ADDED",
+  "tagline": "Season 1 · Aug to Dec 2025",
+  "status": "Shipping to 5+ global regions",
+  "synopsis": "An export-focused brand, and the intern who kept its products moving. Bhavini supported every step from content to dispatch for international orders across 5+ global regions.",
+  "genres": ["marketing-content", "operations"],
+  "figures": ["regions", "units"],
+  "season": 1,
+  "episodes": [
+    {
+      "title": "Content to Dispatch",
+      "synopsis": "Assisted end-to-end product movement for an export-focused brand, supporting content-to-dispatch workflows for international orders across 5+ global regions.",
+      "meta": "5+ regions"
+    },
+    {
+      "title": "A Hundred a Month",
+      "synopsis": "Coordinated logistics for 100+ product units per month, ensuring accurate documentation, packaging alignment and on-time dispatch for international shipments.",
+      "meta": "100+ units"
+    }
+  ]
+}

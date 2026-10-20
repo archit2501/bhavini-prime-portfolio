@@ -1,0 +1,86 @@
+{
+  "revenue": {
+    "value": "$100K+",
+    "label": "in revenue",
+    "source": "Resume, F1Jobs.io: generated $100,000+ in revenue",
+    "verified": true
+  },
+  "deals": {
+    "value": "7+",
+    "label": "successful sales",
+    "source": "Resume, F1Jobs.io: 7+ successful sales",
+    "verified": true
+  },
+  "workflow": {
+    "value": "65%",
+    "label": "workflow efficiency gain",
+    "source": "Resume, F1Jobs.io: improved workflow efficiency by 65%",
+    "verified": true
+  },
+  "tickets": {
+    "value": "20+",
+    "label": "customer tickets resolved",
+    "source": "Resume, F1Jobs.io: resolved 20+ customer tickets",
+    "verified": true
+  },
+  "regions": {
+    "value": "5+",
+    "label": "global regions",
+    "source": "Resume, Vastra Kala: international orders across 5+ global regions",
+    "verified": true
+  },
+  "units": {
+    "value": "100+",
+    "label": "product units a month",
+    "source": "Resume, Vastra Kala: logistics for 100+ product units per month",
+    "verified": true
+  },
+  "cleanups": {
+    "value": "5+",
+    "label": "clean-up drives",
+    "source": "Resume, Youth for Parivarthan: 5+ community clean-up initiatives",
+    "verified": true
+  },
+  "volunteers": {
+    "value": "20–30",
+    "label": "volunteers per drive",
+    "source": "Resume, Youth for Parivarthan: 20–30 volunteers per event",
+    "verified": true
+  },
+  "community": {
+    "value": "50+",
+    "label": "community members engaged",
+    "source": "Resume, Youth for Parivarthan: engaging 50+ community members",
+    "verified": true
+  },
+  "sessions": {
+    "value": "20+",
+    "label": "therapy and assessment sessions",
+    "source": "Resume, ANR Hospital: 20+ therapy and psychological assessment sessions",
+    "verified": true
+  },
+  "caseHistories": {
+    "value": "4+",
+    "label": "case histories",
+    "source": "Resume, ANR Hospital: documented 4+ detailed case histories",
+    "verified": true
+  },
+  "intakes": {
+    "value": "8–12",
+    "label": "intake interviews",
+    "source": "Resume, ANR Hospital: 8–12 structured intake interviews",
+    "verified": true
+  },
+  "cgpa": {
+    "value": "8.81",
+    "label": "CGPA",
+    "source": "Resume, Christ University: 8.81 CGPA",
+    "verified": true
+  },
+  "highSchool": {
+    "value": "90.4%",
+    "label": "in high school",
+    "source": "Resume, Cambridge Innovative School: Score 90.4%",
+    "verified": false
+  }
+}

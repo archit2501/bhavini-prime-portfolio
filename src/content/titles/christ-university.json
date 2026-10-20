@@ -1,0 +1,26 @@
+{
+  "kind": "film",
+  "order": 5,
+  "title": "Christ University",
+  "role": "Bachelor of Arts in Psychology & English",
+  "organization": "Christ University",
+  "location": "Bengaluru, India",
+  "start": "2023",
+  "end": "2026",
+  "ribbon": "NEW RELEASE",
+  "tagline": "Feature · 2023 to 2026",
+  "status": "8.81 CGPA",
+  "synopsis": "Three years of psychology and English, finished with an 8.81 CGPA. Along the way, Bhavini represented students on the University Student Council and worked behind the scenes on department events and fests.",
+  "genres": ["psychology", "professional"],
+  "figures": ["cgpa"],
+  "credits": [
+    {
+      "title": "Student Representative",
+      "synopsis": "University Student Council, 2023 to 2024."
+    },
+    {
+      "title": "Committees",
+      "synopsis": "Active member of the Hospitality and Discipline Committees for departmental events and fests."
+    }
+  ]
+}
