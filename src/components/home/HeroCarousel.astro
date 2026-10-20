@@ -258,9 +258,11 @@ const slides = titles.map((t, i) => ({
   .hero {
     position: relative;
     isolation: isolate;
-    /* Prime sizes the hero at 37/88 of the screen width; phones get a taller crop. */
-    height: max(26rem, calc(100vw * 37 / 88));
-    max-height: 92vh;
+    /* Prime sizes the hero at 37/88 of the screen width; phones get a taller crop. From 600 to
+       about 1300px that is shorter than the stack of ident, lettering, status, synopsis, CTA and
+       entitlement, which then rode up under the nav, so it never goes below 36rem there. */
+    height: max(36rem, calc(100vw * 37 / 88));
+    max-height: max(92vh, 36rem);
     overflow: hidden;
     background: var(--color-bg);
   }
