@@ -17,7 +17,11 @@ import { withBase } from '../lib/url';
 const catalog = await loadCatalog();
 ---
 
-<BaseLayout title="My List" description="Titles you've saved from Bhavini Malhotra's portfolio.">
+<BaseLayout
+  title="My List"
+  description="Titles you've saved from Bhavini Malhotra's portfolio."
+  noindex
+>
   <section class="mylist gutter" aria-labelledby="mylist-title">
     <div class="mylist__head">
       <div>

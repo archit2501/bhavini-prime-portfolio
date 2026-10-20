@@ -21,6 +21,11 @@ interface Props {
   footer?: boolean;
   /** Ask "Who's visiting?" on the first visit of a session (the home page). */
   picker?: boolean;
+  /** Share image (a site path or URL) and its description; defaults to the site's og.png. */
+  image?: string;
+  imageAlt?: string;
+  /** Extra schema.org data for this page, next to the Person. */
+  jsonLd?: Record<string, unknown>;
 }
 
 const {
@@ -30,11 +35,14 @@ const {
   nav = true,
   footer = true,
   picker = false,
+  image,
+  imageAlt = 'Bhavini Malhotra, Sales & Operations Executive at F1Jobs.io: $100K+ in revenue from 7+ sales',
+  jsonLd,
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const homeUrl = new URL(withBase('/'), Astro.site).href;
-const ogImage = new URL(withBase('/og.png'), Astro.site).href;
+const ogImage = new URL(image ?? withBase('/og.png'), Astro.site).href;
 ---
 
 <!doctype html>
@@ -55,10 +63,7 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="Bhavini Malhotra, Sales & Operations Executive at F1Jobs.io: $100K+ in revenue from 7+ sales"
-    />
+    <meta property="og:image:alt" content={imageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
@@ -66,6 +71,7 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
     <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
     <script type="application/ld+json" set:html={jsonLdScript(personJsonLd(homeUrl))} />
+    {jsonLd && <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} />}
   </head>
   <body>
     <a class="skip-link" href="#main">
