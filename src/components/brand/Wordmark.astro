@@ -1,0 +1,70 @@
+---
+import ident from '../../assets/brand/ident.json';
+import wordmark from '../../assets/brand/wordmark.json';
+
+interface Props {
+  /** "wordmark" is the nav and footer logo; "ident" is the "bhavini original" lockup on titles. */
+  variant?: 'wordmark' | 'ident';
+  /** "muted" is the grey footer treatment, swoosh included, as on Prime's footer logo. */
+  tone?: 'default' | 'muted';
+  /** Height of the mark; width follows the artwork's ratio. */
+  height?: string;
+  /** Set when visible text next to the mark already says the same thing. */
+  decorative?: boolean;
+  class?: string;
+}
+
+const {
+  variant = 'wordmark',
+  tone = 'default',
+  height = '1.5rem',
+  decorative = false,
+  class: className,
+} = Astro.props;
+const mark: {
+  viewBox: string;
+  text: string;
+  suffix?: string;
+  swoosh: string;
+  dot: { cx: number; cy: number; r: number };
+} = variant === 'ident' ? ident : wordmark;
+const label = variant === 'ident' ? 'bhavini original' : 'bhavini';
+---
+
+<svg
+  class:list={['mark', `mark--${tone}`, className]}
+  viewBox={mark.viewBox}
+  style={`height: ${height}`}
+  role={decorative ? undefined : 'img'}
+  aria-label={decorative ? undefined : label}
+  aria-hidden={decorative ? 'true' : undefined}
+  focusable="false"
+>
+  <path class="mark__text" d={mark.text}></path>
+  {mark.suffix && <path class="mark__suffix" d={mark.suffix} />}
+  <path class="mark__swoosh" d={mark.swoosh}></path>
+  <circle class="mark__swoosh" cx={mark.dot.cx} cy={mark.dot.cy} r={mark.dot.r}></circle>
+</svg>
+
+<style>
+  .mark {
+    display: block;
+    width: auto;
+    overflow: visible;
+  }
+
+  .mark__text,
+  .mark__suffix {
+    fill: var(--color-text);
+  }
+
+  .mark__swoosh {
+    fill: var(--color-accent);
+  }
+
+  .mark--muted .mark__text,
+  .mark--muted .mark__suffix,
+  .mark--muted .mark__swoosh {
+    fill: var(--color-footer-text);
+  }
+</style>

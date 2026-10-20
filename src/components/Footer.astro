@@ -2,15 +2,14 @@
 import { RESUME_PATH } from '../lib/contact';
 import { SITE } from '../lib/site';
 import { withBase } from '../lib/url';
+import Wordmark from './brand/Wordmark.astro';
 import ContactLink from './ContactLink.astro';
 
 const year = 2026;
 ---
 
 <footer class="footer gutter">
-  <p class="wordmark" aria-hidden="true">
-    bhavini
-  </p>
+  <Wordmark tone="muted" height="1.75rem" decorative />
   <ul class="links">
     <li>
       <a href={SITE.linkedin} rel="me noopener" target="_blank">
@@ -50,13 +49,6 @@ const year = 2026;
     color: var(--color-footer-text);
     font-size: var(--fs-15);
     text-align: center;
-  }
-
-  .wordmark {
-    color: var(--color-footer-text);
-    font-size: var(--fs-20);
-    font-weight: 700;
-    letter-spacing: -0.02em;
   }
 
   .links {
