@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('the storefront hero: two-line headline, white Email CTA and Download resume', async ({
   page,

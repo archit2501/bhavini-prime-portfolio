@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('education is a film with its own credit and a prequel', async ({ page }) => {
   await page.goto('/title/christ-university/');

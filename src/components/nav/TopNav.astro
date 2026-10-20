@@ -170,6 +170,11 @@ const defaultAvatar = avatarBackground(PROFILES[3]);
         Who's visiting
       </h2>
       <ul>
+        <li>
+          <button class="popup__item" type="button" data-switch-profile>
+            Switch profile
+          </button>
+        </li>
         {PROFILES.map((p) => (
           <li>
             <button
@@ -222,6 +227,15 @@ const defaultAvatar = avatarBackground(PROFILES[3]);
   }
 
   show(readProfile(sessionStorage));
+
+  // The full-screen picker can change it too.
+  document.addEventListener('profilechange', (e) => show((e as CustomEvent<string>).detail));
+
+  // "Switch profile" opens "Who's visiting?" over whatever page this is.
+  document.querySelector('[data-switch-profile]')?.addEventListener('click', () => {
+    document.getElementById('profile-menu')?.hidePopover?.();
+    document.querySelector<HTMLDialogElement>('[data-picker]')?.showModal();
+  });
 
   buttons.forEach((button) =>
     button.addEventListener('click', () => {

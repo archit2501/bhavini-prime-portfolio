@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { RESUME_PATH } from './contact';
 import {
   avatarBackground,
+  orderRows,
   PROFILE_KEY,
-  PROFILES,
   profileById,
+  profileCta,
+  PROFILES,
   readProfile,
   writeProfile,
 } from './profiles';
@@ -65,5 +68,44 @@ describe('profiles', () => {
 
   it('paints avatars with each profile gradient', () => {
     expect(avatarBackground(PROFILES[0])).toBe('linear-gradient(135deg, #1a98ff, #0b3a8c)');
+  });
+});
+
+describe('per-profile home', () => {
+  const rows = ['continue', 'top10', 'experience', 'education', 'certifications', 'skills'];
+
+  it('puts what each visitor is after first', () => {
+    expect(orderRows(rows, 'recruiter')).toEqual([
+      'experience',
+      'top10',
+      'continue',
+      'education',
+      'certifications',
+      'skills',
+    ]);
+    expect(orderRows(rows, 'founder').slice(0, 2)).toEqual(['top10', 'continue']);
+    expect(orderRows(rows, 'collaborator')[0]).toBe('skills');
+  });
+
+  it('keeps page order for browsers, no profile, and rows a profile does not list', () => {
+    expect(orderRows(rows, 'browsing')).toEqual(rows);
+    expect(orderRows(rows, null)).toEqual(rows);
+    expect(orderRows(['new-row', 'skills', 'experience'], 'recruiter')).toEqual([
+      'experience',
+      'skills',
+      'new-row',
+    ]);
+  });
+
+  it('gives each profile its own call to action', () => {
+    expect(profileCta('recruiter')).toEqual({
+      label: 'Get her resume',
+      href: RESUME_PATH,
+      download: true,
+    });
+    expect(profileCta('founder')?.href).toBe('/contact/');
+    expect(profileCta('collaborator')?.label).toBe('Say hello');
+    expect(profileCta('browsing')).toBeUndefined();
+    expect(profileCta(null)).toBeUndefined();
   });
 });

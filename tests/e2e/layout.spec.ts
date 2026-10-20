@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('base layout', () => {
   test('uses the measured background and Inter', async ({ page }) => {

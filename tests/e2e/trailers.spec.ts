@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { TRAILER_SLUGS as TRAILERS } from '../../src/lib/trailers';
 
 const TYPES: Record<string, string> = {

@@ -2,6 +2,7 @@
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import Footer from '../components/Footer.astro';
 import Ident from '../components/intro/Ident.astro';
+import ProfilePicker from '../components/intro/ProfilePicker.astro';
 import TopNav from '../components/nav/TopNav.astro';
 import { jsonLdScript, pageTitle, personJsonLd, SITE } from '../lib/site';
 import { withBase } from '../lib/url';
@@ -18,6 +19,8 @@ interface Props {
   /** Full-screen pages (player, profile picker) hide the top navigation and the footer. */
   nav?: boolean;
   footer?: boolean;
+  /** Ask "Who's visiting?" on the first visit of a session (the home page). */
+  picker?: boolean;
 }
 
 const {
@@ -26,6 +29,7 @@ const {
   noindex = false,
   nav = true,
   footer = true,
+  picker = false,
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -67,6 +71,7 @@ const ogImage = new URL(withBase('/og.png'), Astro.site).href;
     <a class="skip-link" href="#main">
       Skip to content
     </a>
+    {nav && <ProfilePicker autoOpen={picker} />}
     {nav && <TopNav />}
     <main id="main" tabindex="-1">
       <slot />

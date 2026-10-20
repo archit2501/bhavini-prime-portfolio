@@ -1,0 +1,206 @@
+---
+import Briefcase from '@lucide/astro/icons/briefcase';
+import Handshake from '@lucide/astro/icons/handshake';
+import Popcorn from '@lucide/astro/icons/popcorn';
+import Rocket from '@lucide/astro/icons/rocket';
+import { avatarBackground, PICKER_KEY, PROFILE_KEY, PROFILES } from '../../lib/profiles';
+
+/**
+ * Prime's "Who's watching?" as "Who's visiting?": full screen, four round avatars that grow on
+ * hover and focus. A native modal dialog with a method="dialog" form, so a choice closes it even
+ * before the script below runs. On the home page it opens before first paint on the first visit
+ * of a session; the avatar menu's "Switch profile" opens it anywhere. With JavaScript off it never
+ * opens and the site works as usual.
+ */
+interface Props {
+  /** Open on load when nobody has answered it this session (the home page). */
+  autoOpen?: boolean;
+}
+
+const { autoOpen = false } = Astro.props;
+const ICONS = { recruiter: Briefcase, founder: Rocket, collaborator: Handshake, browsing: Popcorn };
+---
+
+<dialog id="profile-picker" class="picker" aria-labelledby="picker-title" data-picker>
+  <form method="dialog" class="picker__form">
+    <h2 class="picker__title" id="picker-title">
+      Who's visiting?
+    </h2>
+    <p class="picker__lede">Pick one and the home page puts what you're after first.</p>
+    <ul class="picker__profiles">
+      {PROFILES.map((p) => {
+        const Icon = ICONS[p.id];
+        return (
+          <li>
+            <button class="picker__profile" type="submit" value={p.id} data-pick={p.id}>
+              <span class="picker__avatar" style={`background: ${avatarBackground(p)}`}>
+                <Icon size={44} aria-hidden="true" />
+              </span>
+              <span class="picker__name">{p.name}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+    <button class="picker__skip" type="submit" value="">
+      Skip for now
+    </button>
+  </form>
+</dialog>
+
+{autoOpen && <script is:inline define:vars={{ profileKey: PROFILE_KEY, pickerKey: PICKER_KEY }}>
+  // Before first paint, so the home page never flashes up behind it.
+  try {
+    if (!sessionStorage.getItem(profileKey) && !sessionStorage.getItem(pickerKey)) {
+      document.getElementById('profile-picker').showModal();
+    }
+  } catch {
+    /* storage blocked: skip the picker rather than ask every page */
+  }
+</script>}
+
+<script>
+  import { PICKER_KEY, profileById, writeProfile } from '../../lib/profiles';
+
+  const picker = document.querySelector<HTMLDialogElement>('[data-picker]');
+  if (picker) {
+    // Answered or dismissed: don't ask again this session.
+    picker.addEventListener('close', () => {
+      try {
+        sessionStorage.setItem(PICKER_KEY, 'seen');
+      } catch {
+        /* the inline check fails the same way, so it won't ask again either */
+      }
+    });
+    picker.querySelectorAll<HTMLButtonElement>('[data-pick]').forEach((button) =>
+      button.addEventListener('click', (e) => {
+        const profile = profileById(button.value);
+        if (!profile) return;
+        e.preventDefault();
+        writeProfile(sessionStorage, profile.id);
+        picker.close(profile.id);
+        // Still inside the click, so the ident (src/scripts/ident.ts) may start its sound.
+        document.dispatchEvent(new CustomEvent('profilechange', { detail: profile.id }));
+      }),
+    );
+  }
+</script>
+
+<style>
+  .picker {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .picker::backdrop {
+    background: var(--color-bg);
+  }
+
+  .picker__form {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-6);
+    min-height: 100%;
+    padding: var(--space-12) var(--gutter);
+    text-align: center;
+  }
+
+  .picker__title {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .picker__lede {
+    margin-top: calc(-1 * var(--space-3));
+    color: var(--color-text-muted);
+    font-size: var(--fs-18);
+  }
+
+  .picker__profiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-8);
+    margin: var(--space-4) 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .picker__profile {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border: 0;
+    border-radius: var(--radius-12);
+    background: none;
+    color: var(--color-text-muted);
+  }
+
+  .picker__avatar {
+    display: grid;
+    place-items: center;
+    width: clamp(6.5rem, 4rem + 8vw, 9.5rem);
+    aspect-ratio: 1;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    box-shadow: 0 0 0 0 transparent;
+    transition:
+      transform var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+
+  /* Hover and focus grow the avatar and ring it in white, as on Prime. */
+  .picker__profile:hover .picker__avatar,
+  .picker__profile:focus-visible .picker__avatar {
+    box-shadow: 0 0 0 4px var(--color-text);
+    transform: scale(1.08);
+  }
+
+  .picker__profile:hover,
+  .picker__profile:focus-visible {
+    color: var(--color-text);
+  }
+
+  .picker__profile:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .picker__name {
+    font-size: var(--fs-20);
+    font-weight: 600;
+  }
+
+  .picker__skip {
+    min-height: 2.75rem;
+    padding: 0 var(--space-6);
+    border: 2px solid rgb(255 255 255 / 45%);
+    border-radius: var(--radius-8);
+    background: transparent;
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .picker__skip:hover {
+    border-color: var(--color-text);
+  }
+
+  @media (max-width: 37.4375em) {
+    .picker__profiles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+</style>
