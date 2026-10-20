@@ -12,7 +12,7 @@ import { castLine } from '../../lib/catalog';
 import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
 import { detailMeta, seriesLinks } from '../../lib/title-page';
-import { trailerFor } from '../../lib/trailers';
+import { trailerFor, videoSources } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
 import Wordmark from '../brand/Wordmark.astro';
 import TitleLogo from './TitleLogo.astro';
@@ -61,9 +61,8 @@ const links = seriesLinks(catalog, t, base);
         poster={trailer.poster}
         aria-label={`${t.title} trailer`}
         data-trailer
+        data-sources={JSON.stringify(videoSources(trailer))}
       >
-        <source src={trailer.webm} type="video/webm" />
-        <source src={trailer.mp4} type="video/mp4" />
         <track kind="captions" src={trailer.captions} srclang="en" label="English" />
       </video>
     )}
@@ -199,6 +198,8 @@ const links = seriesLinks(catalog, t, base);
 </section>
 
 <script>
+  import { attachSources } from '../../scripts/video-sources';
+
   const RATE_KEY = 'bhavini:rating:';
 
   for (const hero of document.querySelectorAll<HTMLElement>('[data-detail-hero]')) {
@@ -215,6 +216,8 @@ const links = seriesLinks(catalog, t, base);
       trailerBtn?.setAttribute('aria-pressed', String(on));
       if (!video) return;
       if (on) {
+        // The sources only exist once someone asks for the trailer (see video-sources.ts).
+        attachSources(video);
         video.preload = 'auto';
         // If playback can't start yet (off screen, data saver), immersive mode shows the still
         // art; the observer below plays it once the hero is visible again.

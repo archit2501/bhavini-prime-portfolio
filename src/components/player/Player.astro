@@ -12,7 +12,7 @@ import type { Title } from '../../lib/catalog-schema';
 import { artwork } from '../../lib/artwork-assets';
 import type { SceneSheet } from '../../lib/cues';
 import { NEXT_UP_SECONDS, formatClock, remainingClock, spokenPosition } from '../../lib/player';
-import { TRAILER_CUES, type TrailerFiles } from '../../lib/trailers';
+import { TRAILER_CUES, videoSources, type TrailerFiles } from '../../lib/trailers';
 import { withBase } from '../../lib/url';
 import BehindTheScenes from './BehindTheScenes.astro';
 
@@ -55,9 +55,8 @@ const nextHref = next && withBase(`/watch/${next.slug}/`);
     poster={trailer.poster}
     aria-label={`${t.title} trailer`}
     data-video
+    data-sources={JSON.stringify(videoSources(trailer))}
   >
-    <source src={trailer.webm} type="video/webm" />
-    <source src={trailer.mp4} type="video/mp4" />
     <track kind="captions" src={trailer.captions} srclang="en" label="English" />
     <track kind="metadata" src={trailer.metadata} label="Behind the scenes" />
   </video>
