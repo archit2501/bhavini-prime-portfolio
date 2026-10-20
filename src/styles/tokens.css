@@ -42,9 +42,8 @@
   --color-btn-outline-border: rgb(255 255 255 / 35%);
   --color-btn-solid: #ffffff;
 
-  /* Type: Inter stands in for Prime's proprietary UI face, Archivo (wide) for title art */
+  /* Type: Inter stands in for Prime's proprietary UI face (title art is outlined at build time) */
   --font-sans: 'Inter Variable', 'Inter Fallback', arial, sans-serif;
-  --font-display: 'Archivo Variable', 'Arial Black', arial, sans-serif;
   --fs-11: 0.6875rem; /* small ribbons */
   --fs-13: 0.8125rem; /* chips */
   --fs-14: 0.875rem; /* hover-card meta */

@@ -104,6 +104,8 @@ test('Skip intro jumps past the ident, then goes away', async ({ page }) => {
 test('the controls fade after 3 s of playback and come back on a key', async ({ page }) => {
   await page.clock.install();
   await page.goto('/watch/f1jobs/');
+  // Playback starts once the page is idle; the fake clock has to get there.
+  await page.clock.runFor(1600);
   test.skip(!(await mediaReady(page)), 'this browser cannot load the trailer');
   await expect(player(page)).toHaveAttribute('data-state', 'playing');
   await expect(player(page)).toHaveAttribute('data-chrome', 'shown');
@@ -118,6 +120,7 @@ test('a tap shows and hides the controls on a touch screen', async ({ page, isMo
   test.skip(!isMobile, 'touch devices only');
   await page.clock.install();
   await page.goto('/watch/f1jobs/');
+  await page.clock.runFor(1600);
   test.skip(!(await mediaReady(page)), 'this browser cannot load the trailer');
   await expect(player(page)).toHaveAttribute('data-state', 'playing');
   const surface = page.locator('[data-surface]');
@@ -219,6 +222,7 @@ test.describe('Behind the scenes', () => {
   test('the quick view fades with the chrome and comes back on pause', async ({ page }) => {
     await page.clock.install();
     await page.goto('/watch/f1jobs/');
+    await page.clock.runFor(1600);
     test.skip(!(await mediaReady(page)), 'this browser cannot load the trailer');
     const quick = page.locator('[data-bts]');
     await page.evaluate(() => {
@@ -270,4 +274,16 @@ test.describe('Behind the scenes', () => {
     const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
     expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
   });
+});
+
+test('the trailer never loads before the page has', async ({ page }) => {
+  const order: string[] = [];
+  page.on('load', () => order.push('load'));
+  page.on('request', (r) => {
+    if (/\/trailers\/.+\.(webm|mp4)$/.test(r.url())) order.push('video');
+  });
+  await page.goto('/watch/f1jobs/');
+  await expect(page.locator('video')).toHaveAttribute('preload', /none|metadata/);
+  await expect.poll(() => order.includes('video')).toBe(true);
+  expect(order.indexOf('load')).toBeLessThan(order.indexOf('video'));
 });

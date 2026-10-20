@@ -242,7 +242,18 @@ export function initPlayer(root: HTMLElement): void {
     playBtn?.focus({ preventScroll: true });
   });
 
-  // Start playing, unless motion is reduced: then it waits on the play button.
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) play();
-  else setState('paused');
+  // Nothing loads until the page has: the poster is the first paint (LCP). Then, when idle, it
+  // starts playing, or under reduced motion fetches only the metadata and waits on Play.
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setState('paused');
+  const begin = () => {
+    if (reduced) video.preload = 'metadata';
+    else play();
+  };
+  const whenIdle = () =>
+    typeof requestIdleCallback === 'function'
+      ? requestIdleCallback(begin, { timeout: 1500 })
+      : setTimeout(begin, 200);
+  if (document.readyState === 'complete') whenIdle();
+  else window.addEventListener('load', whenIdle, { once: true });
 }
